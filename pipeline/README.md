@@ -21,7 +21,11 @@ CUDA box later with a different endpoint.
 
 ```bash
 # once
-uv run --with mlx-vlm --with fastapi --with uvicorn python scripts/mlx_server.py --port 8099
+# HF_HUB_DISABLE_SHARED_BLOBS keeps weights inside each models--<repo>/ dir, so /prune
+# frees them with a plain rmtree. hub >= 2 otherwise leaves them in hub/blobs/ (GC'd
+# by /prune via the .refs manifests as well, but this is the cheaper belt-and-braces).
+HF_HUB_DISABLE_SHARED_BLOBS=1 \
+  uv run --with mlx-vlm --with fastapi --with uvicorn python scripts/mlx_server.py --port 8099
 docker compose up -d --build
 
 # registry: every open-source model <=15B on OCRBench v2, plus the OCR specialists
@@ -93,6 +97,23 @@ Weights are downloaded by the host MLX server into `HF_HUB_CACHE` (default
 `~/.cache/huggingface/hub`) and **deleted right after the model is scored** (`--keep-model` keeps
 them). Before each run the pipeline checks the model's download size against free space and records
 `no_space` instead of filling the disk. Raw text and predictions stay, at a few hundred KB per model.
+
+`/prune` also collects the payloads it just unlinked from the cache-wide shared blob store that
+`huggingface_hub` >= 2 uses, so `freed_gb` is real; run the server with
+`HF_HUB_DISABLE_SHARED_BLOBS=1` to keep weights in per-repo dirs instead.
+
+## Overlap (hiding the load)
+
+Two warm-ups run while the previous model infers, both off the critical path:
+
+- **preload** — models up to `TABLESALT_MAX_PRELOAD` (default 12B) are loaded into a second slot in
+  the server (`POST /preload`), so the next `/load` swaps in instantly instead of paying a 2–6 minute
+  cold start. That start is the real cost: a 3B 8-bit model needs ~130 s to load, an 8–9B 4-bit one
+  200–260 s, and it was ~95 % of the measured pre-inference window (a full queue spent ~56 min there).
+- **prefetch** — bigger models only get their download warmed (`POST /prefetch`).
+
+Both are best effort: a failure just means the next `load` pays the cost itself. Pruning a repo also
+evicts it from the second slot, and `/health` shows `next` alongside the loaded model.
 
 ## Output formats
 

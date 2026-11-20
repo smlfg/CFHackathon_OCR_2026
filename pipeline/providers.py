@@ -84,6 +84,20 @@ class MlxProvider:
         usage["seconds"] = round(time.time() - started, 2)
         return text, usage
 
+    def preload(self, repo: str) -> dict:
+        """Ask the server to load a repo into its second slot, ahead of time."""
+        try:
+            return _post(f"{self.base_url}/preload", {"repo": repo}, timeout=30)
+        except (urllib.error.HTTPError, urllib.error.URLError, OSError) as exc:
+            raise ProviderError(f"mlx preload {repo}: {exc}") from exc
+
+    def prefetch(self, repo: str) -> dict:
+        """Ask the server to warm the HF cache for a repo we will load next."""
+        try:
+            return _post(f"{self.base_url}/prefetch", {"repo": repo}, timeout=30)
+        except (urllib.error.HTTPError, urllib.error.URLError, OSError) as exc:
+            raise ProviderError(f"mlx prefetch {repo}: {exc}") from exc
+
     def prune(self, repo: str, delete_weights: bool = True) -> dict:
         return _post(f"{self.base_url}/prune",
                      {"repo": repo, "delete_weights": delete_weights}, timeout=120)

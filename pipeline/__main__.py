@@ -77,7 +77,7 @@ def cmd_run(args) -> None:
     print(f"[run] {len(selected)} model(s) on {ds.name}: "
           f"{', '.join(m['id'] for m in selected)}\n", flush=True)
 
-    for model in selected:
+    for index, model in enumerate(selected):
         print(f"=== {model['id']} ({model.get('name')}, {model['params_b']}B)", flush=True)
         if store.has(model["id"], ds.name, runner.prompt_hash(model["prompt"])) \
                 and not args.force and not args.rescore:
@@ -99,6 +99,7 @@ def cmd_run(args) -> None:
                 run["meta"]["note"] = f"needs {need:.1f} GB, {free:.1f} GB free"
                 store.save(run, [])
                 continue
+            _prefetch_next(selected, index, ds, args)
             try:
                 run = runner.run(model, ds, force=args.force, limit=args.limit)
             except providers.ProviderError as exc:
@@ -128,6 +129,35 @@ def cmd_run(args) -> None:
     for name in {ds.name}:
         paths = board.render(name)
         print(f"\n[board] {paths[name]['md']}\n[board] {paths[name]['html']}", flush=True)
+
+
+def _prefetch_next(selected: list[dict], index: int, ds, args) -> None:
+    """Warm the next model while this one infers — the GPU is idle otherwise.
+
+    Small enough to co-reside: load it into the server's second slot, so its 2–6 minute
+    startup is hidden entirely. Bigger: only warm the download.
+    """
+    for nxt in selected[index + 1:]:
+        if nxt["runtime"] != "mlx":
+            continue
+        if not (args.force or args.rescore) and store.has(
+                nxt["id"], ds.name, runner.prompt_hash(nxt["prompt"])):
+            continue
+        provider = providers.get("mlx")
+        big = (nxt.get("params_b") or 0) > config.MAX_PRELOAD_B
+        try:
+            if big:
+                out = provider.prefetch(nxt["hf_repo"])
+                if not out.get("cached"):
+                    print(f"  prefetch {nxt['hf_repo']} (next: download only, "
+                          f">{config.MAX_PRELOAD_B:.0f}B)", flush=True)
+            else:
+                out = provider.preload(nxt["hf_repo"])
+                if not out.get("cached"):
+                    print(f"  preload {nxt['hf_repo']} (next)", flush=True)
+        except Exception as exc:  # best effort, the run must not depend on it
+            print(f"  warm-up skipped: {exc}", flush=True)
+        return
 
 
 def _prune(model: dict) -> None:

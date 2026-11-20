@@ -31,10 +31,14 @@ REQUEST_TIMEOUT = int(os.environ.get("TABLESALT_TIMEOUT", "900"))
 MAX_PARAMS_B = float(os.environ.get("TABLESALT_MAX_PARAMS", "15"))
 # adapter sanity gate
 MAX_EMPTY_RATE = float(os.environ.get("TABLESALT_MAX_EMPTY_RATE", "0.20"))
+# warm-load the next model into the server's second slot up to this size; bigger models
+# only get their download prefetched (two 12B+ 4-bit models would not fit in unified memory)
+MAX_PRELOAD_B = float(os.environ.get("TABLESALT_MAX_PRELOAD", "12"))
 
 DATASETS = {
     "dev": DATA / "dev",      # official yardstick, 24 tables, never trained on
     "val": DATA / "val",      # generated decision set, 240 tables
+    "val96": DATA / "val96",  # generated validation set, 96 tables
     "train": DATA / "train",  # only for fine-tuning, not for scoring
 }
 
