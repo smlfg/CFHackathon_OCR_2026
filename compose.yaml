@@ -1,0 +1,40 @@
+# TableSalt OCR eval pipeline.
+#
+# The container orchestrates: dataset -> model run -> convert -> score -> metrics.
+# Inference runs on the host (MLX server or Ollama) because Docker on macOS has
+# no Metal. Both are reached through host.docker.internal.
+#
+#   docker compose up -d --build
+#   docker compose run --rm eval run --all --dataset dev
+#   docker compose run --rm eval status
+#   docker compose run --rm eval board
+services:
+  eval:
+    build:
+      context: .
+    image: tablesalt-eval:local
+    working_dir: /app
+    volumes:
+      - .:/app
+    environment:
+      TABLESALT_ROOT: /app
+      MLX_BASE_URL: http://host.docker.internal:8099
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      HF_HUB_CACHE: /models
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    # numbers are in the repo, no state inside the container
+    stdin_open: true
+    tty: true
+
+  # Portable fallback: run a GGUF model fully inside Docker (CPU, slow).
+  #   docker compose --profile cpu up -d llamacpp
+  #   MLX_BASE_URL=http://llamacpp:8080 ... (or register the model with runtime=ollama)
+  llamacpp:
+    image: ghcr.io/ggml-org/llama.cpp:server
+    profiles: ["cpu"]
+    ports:
+      - "8098:8080"
+    volumes:
+      - ./models:/models
+    command: ["-m", "/models/model.gguf", "-c", "8192", "--host", "0.0.0.0", "--port", "8080"]
