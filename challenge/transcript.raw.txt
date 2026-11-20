@@ -1,0 +1,365 @@
+00:00:02 Speaker 1
+Nice to meet you. My name is Elias.
+
+00:00:09 Speaker 2
+I'm 18 years old. I'm studying a bachelor's majoring in data science in the first semester. I started this year here.
+
+00:00:15 Speaker 2
+And I'm looking forward to the challenge.
+
+00:00:19 Speaker 2
+Hello, I'm Samuel. I'm 24, not 25. Today is my birthday.
+
+00:00:24 Speaker 3
+Oh happy birthday!
+
+00:00:25 Speaker 2
+I'm studying applied artificial intelligence at Hahn
+
+00:00:31 Speaker 2
+And I've worked on something similar before.
+
+00:00:33 Speaker 3
+Really?
+
+00:00:37 Speaker 3
+Hello, my name is Mo. I'm also studying management and data science first semester.
+
+00:00:42 Speaker 3
+I'm twenty years old.
+
+00:00:44 Speaker 4
+I feel like I'm twenty. I'm twenty-two, and I'm also studying management and data science first semester.
+
+00:00:52 Speaker 5
+I'm also Elias. I'm also studying Bachelor of Management and Data Science at TU.
+
+00:00:57 Speaker 5
+And I'm also 18, so I'm a student. So how are the teams right now? We all three, and you guys three
+
+00:01:05 Speaker 3
+Or we were two and we have another third. He didn't show up so far. If he doesn't show up, we can work with him.
+
+00:01:13 Speaker 3
+Okay.
+
+00:01:16 Speaker 5
+My name is Fahad. I'm co-founder of Derai. I'm 29 years old.
+
+00:01:22 Speaker 5
+Currently working at both. I'm trying to quit my job, but I'll just talk about our project because you were also asking questions.
+
+00:01:30 Speaker 5
+And then we'll just jump into our presentation. So what we do is basically
+
+00:01:36 Speaker 5
+I do a brief explanation. What we do, we are creating an AI platform for text consultations, and what that means is these guys are doing a lot of manual tasks in their daily life, but this always needs some semantic attention, which means you cannot basically create a deterministic algorithm because, for example, they have to create something called a share performance. At the end of each quarter.
+
+00:02:04 Speaker 5
+They go over their client's documents. What they bought or purchased? What they invested in? Did they fire someone? Did they buy new furniture for their office? And they create a report and send this report to finance and to the government.
+
+00:02:20 Speaker 5
+Because you know that's better than we probably taxes the most important thing in Germany, right? And then there is this answer is coming from Finanzamt. They go over the documents again. They do some stuff and make another report. And like it's always like this, right? And if they don't like something, they can take the case to the court, and court decides against them or in favor of them.
+
+00:02:43 Speaker 5
+And then later they can use this court decisions to
+
+00:02:48 Speaker 5
+Make their cases stronger. They give references to these court decisions, and these court decisions actually update text laws for clients.
+
+00:02:57 Speaker 5
+And what we do is basically follow the text law in general, court decisions, new regulations, BMS letters, whatever. But we also know the client data, so that's where you are going to mostly work on.
+
+00:03:12 Speaker 5
+Our customers have thousands of clients, and each client has tens of thousands of documents, and they're sometimes just like a picture of a document uploaded, and it's just lost somewhere. Or an exam table like maybe 50 pages long.
+
+00:03:29 Speaker 5
+And there's this problem with the tax consultants because Germany wasn't so much into digitalization, or a bit slow. People were still
+
+00:03:41 Speaker 5
+And actually there are still.
+
+00:03:44 Speaker 5
+Doing a lot of scanned documents, they are just like posting their invoices or whatever to text analysis, and they just take the photo, upload it to the system, they read it there. But there's a problem. If you take the photo like this or in bad illumination, or the paper has some wrinkles on it, then you cannot really extract the text in it.
+
+00:04:06 Speaker 5
+Of course, you can just send the whole paper, whole picture to the LLM and expect it to read.
+
+00:04:15 Speaker 5
+Mostly, it does a good job, a perfect job, but it's way too expensive. You cannot just make it read fifty pages long PDF for a simple question.
+
+00:04:25 Speaker 5
+So what we're going to do is extract the text out of this
+
+00:04:31 Speaker 5
+Let's say
+
+00:04:33 Speaker 5
+Not so good scanned documents. That's the idea. Do you have any questions?
+
+00:04:38 Speaker 4
+Is the documents only text or are the tables as well? What is the content of this?
+
+00:04:43 Speaker 5
+It is tables.
+
+00:04:44 Speaker 4
+It's but both or just tables.
+
+00:04:49 Speaker 4
+Graphics as well or not?
+
+00:04:51 Speaker 5
+Not graphics, only tables. Only tables with texts inside.
+
+00:04:54 Speaker 4
+But also just normal text like paragraphs. Does it have legal signs or stuff like that? Because is it just A B C and numbers or is it also?
+
+00:05:05 Speaker 5
+It is close to real world scenarios. Sometimes the columns are structured differently, parent columns, but the content is mostly Latin alphabet and German alphabet with umlauts and everything. You are expected to normalize the content, which means
+
+00:05:23 Speaker 5
+For example, the floating numbers. You are using a comma instead of a point to represent a floating number. You should also make this universal.
+
+00:05:38 Speaker 5
+So there are some test cases. You will already see the tables themselves.
+
+00:05:43 Speaker 5
+But there will also be hidden tables. I think there are twenty-ish open tables and ninety-ish hidden test cases.
+
+00:05:56 Speaker 5
+So don't try to feed your algorithm on the open test cases.
+
+00:06:03 Speaker 5
+There are some other surprises in the hidden test case.
+
+00:06:05 Speaker 1
+Too bad. Let's give it a surprise.
+
+00:06:08 Speaker 4
+What type of surprises?
+
+00:06:12 Speaker 5
+Let's give it a surprise. Maybe just give it more information.
+
+00:06:16 Speaker 5
+Maybe I can talk about one. For example, the tests you will be getting are mostly table-oriented PDF files or PNG files. But in one example, there could be text around it.
+
+00:06:31 Speaker 5
+Just an example.
+
+00:06:33 Speaker 5
+But of course, you don't have to take full point on all the hidden test cases. We are not expecting you to do that. But I find this problem quite solvable.
+
+00:06:47 Speaker 5
+Not so open-ended.
+
+00:06:49 Speaker 5
+And I believe you are going to do minimal white coding. So try to understand the idea, come up with your own creativity, and document that. Because I think this will make the difference in our competition. You're all going to fulfill many test cases.
+
+00:07:11 Speaker 5
+But at the end, the difference will be how you approached the problem and how the performance is. All of your solutions will be run on my laptop.
+
+00:07:20 Speaker 5
+We will also evaluate the performance, the requirements and specifications of the laptop, which is already written in the readme file that I'm going to give you. Technical story.
+
+00:07:34 Speaker 5
+You're just gonna push your code. I will download it. It has to work in Docker because I don't want to spend hours just setting up your environment. If there are, of course, small things that I need to fix before, it's totally fine.
+
+00:07:49 Speaker 5
+But don't expect me to install fifty software.
+
+00:07:55 Speaker 5
+Because I have limited time to evaluate the results
+
+00:08:00 Speaker 5
+So it has to be running in a Docker environment.
+
+00:08:04 Speaker 5
+Any questions?
+
+00:08:06 Speaker 3
+Did you try any approaches for solving this problem before?
+
+00:08:09 Speaker 5
+We are using one of the most common approaches available. It's Open Source. It's called Tesseract. Tesseract is developed by IBM in the seventies.
+
+00:08:27 Speaker 5
+This is mostly computer vision approach. With I think in the latest versions. Combined with some smaller elements
+
+00:08:36 Speaker 5
+Or AI models, I'm not sure.
+
+00:08:39 Speaker 5
+But there are different approaches. You can connect elements to each other, connect, or train your own elements. Connect deterministic functions with other stuff, or you can only try to train one model.
+
+00:08:55 Speaker 5
+And also, there are some AI models that try to do this job only. Like voice or AI models. Do you research about it?
+
+00:09:08 Speaker 5
+Um.
+
+00:09:10 Speaker 3
+Which kind of documents again? From which department do you get them? Do you scan your documents?
+
+00:09:17 Speaker 5
+The documents that we prepare are not available because, of course, we can't share their information.
+
+00:09:25 Speaker 5
+But these are mostly generic tables.
+
+00:09:28 Speaker 3
+I can say. Is it from only one source?
+
+00:09:33 Speaker 5
+We create it.
+
+00:09:35 Speaker 4
+What is the result supposed to be? Is it just the digitalized document, or is it supposed to be that you can ask about the contents of an element in the table? What's supposed to be the outcome?
+
+00:09:47 Speaker 5
+Perfect. You also find in the repo story that there are test cases and the expected outputs. You can create expected output in JSON or HTML format.
+
+00:09:58 Speaker 4
+That's not what I mean. Do you want the contents to be digitized, like that? You have a PDF document, and before it was a picture, and now it is like actual text. Or do you want just the contents to be written, summarized in a text? Or what exactly?
+
+00:10:15 Speaker 5
+We don't expect you to create another PDF. We expect you to read that scanned document and create a JSON or HTML file with the content itself.
+
+00:10:24 Speaker 2
+So to keep the representation of the document structure
+
+00:10:30 Speaker 2
+But as text based.
+
+00:10:31 Speaker 5
+I'm ready. You decide how you want to represent it.
+
+00:10:39 Speaker 2
+But the benchmark you're running is only to that step. So the format we can freely choose.
+
+00:10:50 Speaker 5
+But I recommend you changing more. But.
+
+00:10:55 Speaker 5
+Okay.
+
+00:10:59 Speaker 5
+If you already want it, I can give you the repository. It's public already.
+
+00:11:04 Speaker 5
+All you have to do is use it as a template, create your own private repository, and add me as a contributor so I can read your comments.
+
+00:11:15 Speaker 5
+I'm just posting it on the WhatsApp channel.
+
+00:11:27 Speaker 4
+Do we have the Codex credits already, or how do we get them?
+
+00:11:32 Speaker 1
+Tomorrow
+
+00:11:33 Speaker 2
+I think.
+
+00:11:38 Speaker 3
+So you're gonna give us pre-scanned documents, right?
+
+00:11:49 Speaker 2
+I just don't know.
+
+00:11:59 Speaker 1
+And if the other guys don't join, this is contact.
+
+00:12:03 Speaker 3
+I think we have to take a decision in an hour to seven at the latest. He should be here.
+
+00:12:12 Speaker 2
+If Ahmed doesn't show up
+
+00:12:16 Speaker 6
+You've got a good laptop.
+
+00:12:30 Speaker 6
+Haha. And why is it so hard?
+
+00:12:43 Speaker 5
+It is not hard.
+
+00:12:44 Speaker 1
+As I said, I expect you all to fix everything for the others.
+
+00:12:48 Speaker 1
+So I just
+
+00:12:50 Speaker 1
+I just want to see how we approach problems.
+
+00:12:53 Speaker 2
+So we are probably all going to compete or beat the benchmark.
+
+00:12:59 Speaker 2
+But. Based on, for example, performance or performance.
+
+00:13:02 Speaker 1
+I don't share the idea.
+
+00:13:05 Speaker 1
+What I would do
+
+00:13:08 Speaker 1
+If I was in your place, I would just go and check out the performance first.
+
+00:13:12 Speaker 1
+And try to understand, ask AI to try to understand why Ollama is so hard, why it's failing, why tables are that way or not that way
+
+00:13:23 Speaker 1
+And then try to like.
+
+00:13:28 Speaker 1
+Solve each problem one by one instead of just AI actually going and fixing this.
+
+00:13:39 Speaker 2
+This is also what you meant with, in the presentation, it said our reasoning behind different decisions. At the end, you want something like an architectural decision records.
+
+00:13:55 Speaker 1
+Because I can also check it up there. Idea now, we could do the same. You just told you that you have to create some workflow for Shaberta
+
+00:14:06 Speaker 1
+But you don't have any content about that. So to try to measure things, I try to give some concrete example, concrete challenge. I hope you like it.
+
+00:14:23 Speaker 1
+Good.
+
+00:17:34 Speaker 1
+And maybe it would be great if you can show me some intermediate results.
+
+00:17:42 Speaker 1
+Help me maximize better. Sure. Please.
+
+00:17:53 Speaker 1
+Not until that time.
+
+00:17:55 Speaker 5
+Today. Let me check.
+
+00:17:58 Speaker 1
+Program.
+
+00:18:01 Speaker 1
+You guys here on the game?
+
+00:18:16 Speaker 1
+Probably around eight.
+
+00:18:18 Speaker 1
+But like, I was to be like
+
+00:18:20 Speaker 5
+I just need to drive to Costa Rica.
+
+00:19:23 Speaker 6
+Everything.
+
+00:20:25 Speaker 6
+620°
