@@ -13,5 +13,17 @@ out/
 preds*/
 predictions*/
 ranking.json
+gallery.html
+gallery_*.html
+pred_*/
+out_*/
+
+# Downloaded reference dumps, not ours
+ocrbench_v2/
 
 .DS_Store
+
+# Eval pipeline outputs (regenerate with `python -m pipeline run`)
+raw/
+predictions/
+metrics/
