@@ -11,6 +11,7 @@ import csv
 import io
 import os
 import subprocess
+import sys
 import tempfile
 from dataclasses import replace
 from pathlib import Path
@@ -38,6 +39,9 @@ def crop_blob(gray: np.ndarray, b: Blob, h: float, cfg: Config = CFG,
     return cv2.copyMakeBorder(crop, p, p, p, p, cv2.BORDER_CONSTANT, value=255)
 
 
+TESS_ERRORS: list[str] = []   # per process; read by run.py
+
+
 def run_tesseract(images: list[np.ndarray], psm: int = 7, whitelist: str | None = None,
                   cfg: Config = CFG) -> list[tuple[str, float]]:
     """OCR many small images in one Tesseract call -> [(text, mean word conf)]."""
@@ -59,6 +63,11 @@ def run_tesseract(images: list[np.ndarray], psm: int = 7, whitelist: str | None 
         env = dict(os.environ, OMP_THREAD_LIMIT="1")
         res = subprocess.run(cmd, capture_output=True, env=env, timeout=120)
         out = res.stdout.decode("utf-8", errors="replace")
+        if res.returncode != 0 or not out.strip():
+            # make failures visible: they used to vanish and turn into empty cells
+            TESS_ERRORS.append(f"rc={res.returncode} {res.stderr.decode('utf-8', 'replace')[-300:]}")
+            if len(TESS_ERRORS) <= 3:
+                print(f"[tesseract] {' '.join(cmd[2:])}: {TESS_ERRORS[-1]}", file=sys.stderr, flush=True)
     return parse_tsv(out, len(images))
 
 
