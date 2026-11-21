@@ -1,0 +1,15 @@
+{
+  "variant_id": "v1_tatr_clean",
+  "hypothesis": "Border-line trim + background normalization + 16px white pad + upscale (>=64px) + deu+eng + psm 7->6->8 fallback + speckle-gated median before OCR improves QA and FINAL over V0 without hurting T3 structure.",
+  "device": "auto",
+  "max_dim": 1000,
+  "score_threshold": 0.5,
+  "nms_iou": 0.3,
+  "tatr_denoise": "median3",
+  "ocr_mode": "clean_crop",
+  "ocr_lang": "deu+eng",
+  "ocr_denoise": "speckle_gate",
+  "speckle_gate_threshold": 0.010,
+  "workers": 6,
+  "postprocess": "none"
+}

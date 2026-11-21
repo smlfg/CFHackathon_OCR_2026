@@ -1,0 +1,11 @@
+# Pinned runtime dependencies for submission_template/Dockerfile.
+# torch + torchvision come from the PyTorch cu124 index (bundles CUDA 12.4 + cuDNN
+# inside the venv, avoiding duplicate ~8.6 GB OS cuDNN libraries).
+torch==2.6.0
+torchvision==0.21.0
+transformers==4.49.0
+timm==1.0.9
+huggingface-hub==0.27.1
+pytesseract==0.3.13
+pillow==11.0.0
+numpy==1.26.4
