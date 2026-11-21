@@ -124,10 +124,11 @@ RUN set -eux; \
 from PIL import Image, ImageDraw; \
 import pytesseract; \
 im = Image.new('RGB', (400, 80), 'white'); \
-ImageDraw.Draw(im).text((10, 25), 'Total 1.234 EUR', fill='black'); \
+ImageDraw.Draw(im).text((10, 25), 'Total 1234 EUR', fill='black'); \
 txt = pytesseract.image_to_string(im, lang='deu+eng', config='--psm 7').strip(); \
 print('OCR self-test:', repr(txt)); \
-assert '1.234' in txt, 'Tesseract OCR self-test failed: ' + repr(txt)"; \
+assert '1234' in txt, 'Tesseract OCR self-test failed: ' + repr(txt); \
+assert 'EUR' in txt, 'Tesseract OCR self-test lost the word: ' + repr(txt)"; \
     echo "--- TATR ---"; \
     python3 -c "\
 from pathlib import Path; \

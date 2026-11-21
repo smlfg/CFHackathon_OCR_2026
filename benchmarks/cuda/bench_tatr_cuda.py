@@ -151,10 +151,14 @@ def check_ocr_environment() -> dict:
     from PIL import Image, ImageDraw
 
     image = Image.new("RGB", (400, 80), "white")
-    ImageDraw.Draw(image).text((10, 25), "Total 1.234 EUR", fill="black")
+    # Digits without a decimal point: the German model reads "1.234" as
+    # "1234" (thousands separator), which is the known `number-format` error
+    # class, not a broken OCR. We only want to prove that Tesseract reads
+    # *something* correctly here.
+    ImageDraw.Draw(image).text((10, 25), "Total 1234 EUR", fill="black")
     text = pytesseract.image_to_string(image, lang="deu+eng",
                                         config="--psm 7").strip()
-    if "1.234" not in text:
+    if "1234" not in text or "EUR" not in text:
         raise SystemExit(
             f"Tesseract cannot read text: got {text!r}\n"
             "TESSDATA_PREFIX is probably wrong, or the language data is missing.\n"

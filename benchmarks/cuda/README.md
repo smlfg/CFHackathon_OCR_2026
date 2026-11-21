@@ -152,6 +152,16 @@ Both were hit during development; both are now guarded.
 The harness prints the Tesseract version it ran with, so a row in
 `challenge/MEASUREMENTS.md` always says which OCR produced it.
 
+### A note on the self-test string
+
+The self-test reads `Total 1234 EUR` and not `Total 1.234 EUR`. The German
+Tesseract model reads `1.234` as `1234` — it treats the dot as a thousands
+separator. That is the known `number-format` error class in
+[`challenge/ERRORS.md`](../../challenge/ERRORS.md), not a broken OCR setup, so
+the self-test deliberately avoids a decimal point. It only has to prove that
+Tesseract reads *something* correctly.
+
+
 ---
 
 ## Files
