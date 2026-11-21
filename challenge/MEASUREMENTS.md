@@ -17,6 +17,7 @@ One row per scored run. Never edit an old row; add a new one. Numbers come from
 | 2026-11-20 | MinerU2.5 1.2B + postprocess P0..P5 (`pipeline/postprocess.py`) | dev (24) | 0.979 | 1.000 | 0.977 | 1.0000 | 0.958 | 0.9862 | 2.56+pp | us |
 | 2026-11-20 | MinerU2.5 1.2B + postprocess P0..P5 (`pipeline/postprocess.py`) | val96 (96, seed=2) | 0.995 | 0.983 | 0.975 | 0.9891 | 0.960 | 0.9808 | 2.33+pp | us |
 | 2026-11-21 | TATR -> clean Tesseract (`scripts/my_tatr_fusion.py`: border trim, white pad, upscale, `deu+eng`, speckle-gated median, NMS 0.3; CellF1 0.6235) | dev (24) | 0.899 | 0.867 | 0.764 | 0.682 | 0.508 | 0.7268 | 1.49 | us |
+| 2026-11-21 | CUDA benchmark harness (`benchmarks/cuda/bench_tatr_cuda.py`, CPU/Mac) — reproduces the row above exactly (FINAL 0.7268, CellF1 0.6235), so the harness is faithful. Stage split: TATR 6.8 %, **Tesseract 89.4 %** | dev (24) | 0.899 | 0.867 | 0.764 | 0.682 | 0.508 | 0.7268 | 1.43 | us |
 | | | | | | | | | | | |
 
 ## Notes on method

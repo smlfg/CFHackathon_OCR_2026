@@ -1,0 +1,16 @@
+# CUDA benchmark image dependencies.
+#
+# torch is installed from the cu124 index (--extra-index-url in the Dockerfile).
+# Versions are pinned so the build is reproducible and so the numbers transfer
+# between the Mac (CPU reference) and the 4070 laptop (CUDA).
+torch==2.6.0
+torchvision==0.21.0
+transformers==4.49.0
+# timm is required by the TATR ResNet-18 backbone (TableTransformerConvEncoder).
+timm==1.0.9
+huggingface-hub==0.27.1
+pytesseract==0.3.13
+pillow==11.0.0
+numpy==1.26.4
+apted==1.0.3
+lxml==5.2.1

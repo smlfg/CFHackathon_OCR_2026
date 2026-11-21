@@ -46,3 +46,11 @@ docker compose run --rm eval run --all --dataset dev
 ```
 
 `run` is idempotent and resumable; `--rescore` re-scores existing raw output without touching a model.
+
+## CUDA benchmark (`cuda/`)
+
+A separate, self-contained benchmark for the **TATR → Tesseract** pipeline on an NVIDIA GPU:
+per-stage timing (which stage the GPU actually helps) plus the official score.
+
+See [`cuda/README.md`](cuda/README.md). It does not touch the MLX board — it answers a different
+question (speed on CUDA), and it imports `scripts/my_tatr_fusion.py` unchanged.
