@@ -1,0 +1,350 @@
+{
+  "case": "dev_table_016",
+  "error_class": "collapsed-header-row",
+  "image": "dev_table_016.png",
+  "teds": 0.8352,
+  "gt_rows": 10,
+  "pred_rows": 9,
+  "qa_ok": 0,
+  "qa_total": 5,
+  "gt_cells": [
+    {
+      "text": "",
+      "r": 0,
+      "c": 0,
+      "rs": 2,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Plan",
+      "r": 0,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Delta",
+      "r": 0,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Reported",
+      "r": 0,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Q1",
+      "r": 1,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Q2",
+      "r": 1,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Q3",
+      "r": 1,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Oracle",
+      "r": 2,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "85 421",
+      "r": 2,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "62 026",
+      "r": 2,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "34 327",
+      "r": 2,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Majority",
+      "r": 3,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "33 537",
+      "r": 3,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "—",
+      "r": 3,
+      "c": 2,
+      "rs": 1,
+      "cs": 2,
+      "header": false
+    },
+    {
+      "text": "Baseline",
+      "r": 4,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "88 672 €",
+      "r": 4,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "20 838",
+      "r": 4,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "85 578",
+      "r": 4,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Human",
+      "r": 5,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "80 839",
+      "r": 5,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "10 673",
+      "r": 5,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "73 543",
+      "r": 5,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Ours (large)",
+      "r": 6,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "7 487",
+      "r": 6,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "–",
+      "r": 6,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "–",
+      "r": 6,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Prior SOTA",
+      "r": 7,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "67 509",
+      "r": 7,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 7,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "39 071",
+      "r": 7,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Ours (base)",
+      "r": 8,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "27 867",
+      "r": 8,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "",
+      "r": 8,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "13 575",
+      "r": 8,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Ablation 3",
+      "r": 9,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "61 674",
+      "r": 9,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "65 041",
+      "r": 9,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "78 094",
+      "r": 9,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    }
+  ],
+  "gt_html": "<table><tr><th rowspan=\"2\"></th><th>Plan</th><th>Delta</th><th>Reported</th></tr><tr><th>Q1</th><th>Q2</th><th>Q3</th></tr><tr><td>Oracle</td><td>85 421</td><td>62 026</td><td>34 327</td></tr><tr><td>Majority</td><td>33 537</td><td colspan=\"2\">—</td></tr><tr><td>Baseline</td><td>88 672 €</td><td>20 838</td><td>85 578</td></tr><tr><td>Human</td><td>80 839</td><td>10 673</td><td>73 543</td></tr><tr><td>Ours (large)</td><td>7 487</td><td>–</td><td>–</td></tr><tr><td>Prior SOTA</td><td>67 509</td><td>n/a</td><td>39 071</td></tr><tr><td>Ours (base)</td><td>27 867</td><td></td><td>13 575</td></tr><tr><td>Ablation 3</td><td>61 674</td><td>65 041</td><td>78 094</td></tr></table>",
+  "pred_html_mineru2_5": "<table><tr><td></td><td>Plan Q1</td><td>Delta Q2</td><td>Reported Q3</td></tr><tr><td>Oracle</td><td>85 421</td><td>62 026</td><td>34 327</td></tr><tr><td>Majority</td><td>33 537</td><td colspan=\"2\">—</td></tr><tr><td>Baseline</td><td>88 672 €</td><td>20 838</td><td>85 578</td></tr><tr><td>Human</td><td>80 839</td><td>10 673</td><td>73 543</td></tr><tr><td>Ours (large)</td><td>7 487</td><td>—</td><td>—</td></tr><tr><td>Prior SOTA</td><td>67 509</td><td>n/a</td><td>39 071</td></tr><tr><td>Ours (base)</td><td>27 867</td><td></td><td>13 575</td></tr><tr><td>Ablation 3</td><td>61 674</td><td>65 041</td><td>78 094</td></tr></table>",
+  "qa_eval": [
+    {
+      "question": "What is the value for \"Human\" in column \"Q3\"?",
+      "expected": "73 543",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"Oracle\" in column \"Q2\"?",
+      "expected": "62 026",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"Ours (large)\" in column \"Q1\"?",
+      "expected": "7 487",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"Oracle\" in column \"Q3\"?",
+      "expected": "34 327",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the sum of all numeric values in column \"Q3\" for the rows ['Human', 'Oracle', 'Ours (base)', 'Ablation 3', 'Baseline', 'Prior SOTA']?",
+      "expected": 324188.0,
+      "got": "",
+      "ok": false
+    }
+  ]
+}

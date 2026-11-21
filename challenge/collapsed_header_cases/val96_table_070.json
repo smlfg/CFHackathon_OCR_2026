@@ -1,0 +1,502 @@
+{
+  "case": "val96_table_070",
+  "error_class": "collapsed-header-row",
+  "image": "val96_table_070.jpg",
+  "teds": 0.8522,
+  "gt_rows": 12,
+  "pred_rows": 11,
+  "qa_ok": 1,
+  "qa_total": 5,
+  "gt_cells": [
+    {
+      "text": "Item",
+      "r": 0,
+      "c": 0,
+      "rs": 2,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Reported",
+      "r": 0,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Delta",
+      "r": 0,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Actual",
+      "r": 0,
+      "c": 3,
+      "rs": 1,
+      "cs": 2,
+      "header": true
+    },
+    {
+      "text": "Q1",
+      "r": 1,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Q2",
+      "r": 1,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Q3",
+      "r": 1,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Q4",
+      "r": 1,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Sodium",
+      "r": 2,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "14,442.11",
+      "r": 2,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "31,691.87",
+      "r": 2,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "44,689.28",
+      "r": 2,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 2,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Magnesium",
+      "r": 3,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "32,326.75",
+      "r": 3,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "41,042.82",
+      "r": 3,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "60,542.04",
+      "r": 3,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "45,984.99",
+      "r": 3,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Silicon",
+      "r": 4,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "-7,704.02",
+      "r": 4,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "-9,879.29",
+      "r": 4,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "46,884.68",
+      "r": 4,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "42,050.27",
+      "r": 4,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Oxygen",
+      "r": 5,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "89,986.76",
+      "r": 5,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "1,587.15",
+      "r": 5,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "80,099.27 kg",
+      "r": 5,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "99,676.80",
+      "r": 5,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Potassium",
+      "r": 6,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "68,970.10",
+      "r": 6,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "86,184.35",
+      "r": 6,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "61,793.67 kg",
+      "r": 6,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 6,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Lithium",
+      "r": 7,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "46,880.39",
+      "r": 7,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 7,
+      "c": 2,
+      "rs": 1,
+      "cs": 2,
+      "header": false
+    },
+    {
+      "text": "64,655.75",
+      "r": 7,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Phosphorus",
+      "r": 8,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "78,285.36",
+      "r": 8,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "50,397.68",
+      "r": 8,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "42,738.04",
+      "r": 8,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "59,776.22",
+      "r": 8,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Calcium",
+      "r": 9,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "-561.87",
+      "r": 9,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "81,734.21",
+      "r": 9,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "-4,274.74",
+      "r": 9,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "51,960.66",
+      "r": 9,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Aluminium",
+      "r": 10,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "46,052.79",
+      "r": 10,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "",
+      "r": 10,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "27,188.30",
+      "r": 10,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "30,293.22",
+      "r": 10,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Helium",
+      "r": 11,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "48,784.34",
+      "r": 11,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "–",
+      "r": 11,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "67,020.56",
+      "r": 11,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "–",
+      "r": 11,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    }
+  ],
+  "gt_html": "<table><tr><th rowspan=\"2\">Item</th><th>Reported</th><th>Delta</th><th colspan=\"2\">Actual</th></tr><tr><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th></tr><tr><td>Sodium</td><td>14,442.11</td><td>31,691.87</td><td>44,689.28</td><td>n/a</td></tr><tr><td>Magnesium</td><td>32,326.75</td><td>41,042.82</td><td>60,542.04</td><td>45,984.99</td></tr><tr><td>Silicon</td><td>-7,704.02</td><td>-9,879.29</td><td>46,884.68</td><td>42,050.27</td></tr><tr><td>Oxygen</td><td>89,986.76</td><td>1,587.15</td><td>80,099.27 kg</td><td>99,676.80</td></tr><tr><td>Potassium</td><td>68,970.10</td><td>86,184.35</td><td>61,793.67 kg</td><td>n/a</td></tr><tr><td>Lithium</td><td>46,880.39</td><td colspan=\"2\">n/a</td><td>64,655.75</td></tr><tr><td>Phosphorus</td><td>78,285.36</td><td>50,397.68</td><td>42,738.04</td><td>59,776.22</td></tr><tr><td>Calcium</td><td>-561.87</td><td>81,734.21</td><td>-4,274.74</td><td>51,960.66</td></tr><tr><td>Aluminium</td><td>46,052.79</td><td></td><td>27,188.30</td><td>30,293.22</td></tr><tr><td>Helium</td><td>48,784.34</td><td>–</td><td>67,020.56</td><td>–</td></tr></table>",
+  "pred_html_mineru2_5": "<table><tr><td>Item</td><td>Reported\nQ1</td><td>Delta\nQ2</td><td>Actual\nQ3</td><td>Q4</td></tr><tr><td>Sodium</td><td>14,442.11</td><td>31,691.87</td><td>44,689.28</td><td>n/a</td></tr><tr><td>Magnesium</td><td>32,326.75</td><td>41,042.82</td><td>60,542.04</td><td>45,984.99</td></tr><tr><td>Silicon</td><td>-7,704.02</td><td>-9,879.29</td><td>46,884.68</td><td>42,050.27</td></tr><tr><td>Oxygen</td><td>89,986.76</td><td>1,587.15</td><td>80,099.27 kg</td><td>99,676.80</td></tr><tr><td>Potassium</td><td>68,970.10</td><td>86,184.35</td><td>61,793.67 kg</td><td>n/a</td></tr><tr><td>Lithium</td><td>46,880.39</td><td colspan=\"2\">n/a</td><td>64,655.75</td></tr><tr><td>Phosphorus</td><td>78,285.36</td><td>50,397.68</td><td>42,738.04</td><td>59,776.22</td></tr><tr><td>Calcium</td><td>-561.87</td><td>81,734.21</td><td>-4,274.74</td><td>51,960.66</td></tr><tr><td>Aluminium</td><td>46,052.79</td><td></td><td>27,188.30</td><td>30,293.22</td></tr><tr><td>Helium</td><td>48,784.34</td><td>-</td><td>67,020.56</td><td>-</td></tr></table>",
+  "qa_eval": [
+    {
+      "question": "What is the value for \"Phosphorus\" in column \"Q3\"?",
+      "expected": "42,738.04",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"Potassium\" in column \"Q1\"?",
+      "expected": "68,970.10",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"Oxygen\" in column \"Q1\"?",
+      "expected": "89,986.76",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"Phosphorus\" in column \"Q4\"?",
+      "expected": "59,776.22",
+      "got": "59,776.22",
+      "ok": true
+    },
+    {
+      "question": "What is the sum of all numeric values in column \"Q3\" for the rows ['Phosphorus', 'Aluminium', 'Silicon', 'Sodium', 'Oxygen', 'Potassium', 'Helium', 'Magnesium', 'Calcium']?",
+      "expected": 426681.1,
+      "got": "",
+      "ok": false
+    }
+  ]
+}

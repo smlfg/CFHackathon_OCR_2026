@@ -1,0 +1,614 @@
+{
+  "case": "val96_table_094",
+  "error_class": "collapsed-header-row",
+  "image": "val96_table_094.jpg",
+  "teds": 0.8472,
+  "gt_rows": 11,
+  "pred_rows": 10,
+  "qa_ok": 1,
+  "qa_total": 5,
+  "gt_cells": [
+    {
+      "text": "Position",
+      "r": 0,
+      "c": 0,
+      "rs": 2,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Adjusted",
+      "r": 0,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Delta",
+      "r": 0,
+      "c": 2,
+      "rs": 1,
+      "cs": 2,
+      "header": true
+    },
+    {
+      "text": "Reported",
+      "r": 0,
+      "c": 4,
+      "rs": 1,
+      "cs": 2,
+      "header": true
+    },
+    {
+      "text": "Actual",
+      "r": 0,
+      "c": 6,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Q1",
+      "r": 1,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Q2",
+      "r": 1,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Q3",
+      "r": 1,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Q4",
+      "r": 1,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "FY",
+      "r": 1,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "YoY",
+      "r": 1,
+      "c": 6,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Sonstige Kosten",
+      "r": 2,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 2,
+      "c": 1,
+      "rs": 1,
+      "cs": 2,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 2,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "42.118,94",
+      "r": 2,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "30.174,59",
+      "r": 2,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "43.610,99",
+      "r": 2,
+      "c": 6,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Jahresüberschuss",
+      "r": 3,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "-7.564,12",
+      "r": 3,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "39.418,84",
+      "r": 3,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "86.492,01",
+      "r": 3,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "88.066,53",
+      "r": 3,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "88.876,71",
+      "r": 3,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "77.150,61",
+      "r": 3,
+      "c": 6,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Zinsaufwand",
+      "r": 4,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "",
+      "r": 4,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "83.170,30",
+      "r": 4,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "3.987,97",
+      "r": 4,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "see note 3",
+      "r": 4,
+      "c": 4,
+      "rs": 1,
+      "cs": 2,
+      "header": false
+    },
+    {
+      "text": "93.428,88",
+      "r": 4,
+      "c": 6,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Abschreibungen",
+      "r": 5,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 5,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "68.680,08",
+      "r": 5,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 5,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "92.761,07",
+      "r": 5,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "51.877,08 ms",
+      "r": 5,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "20.103,23",
+      "r": 5,
+      "c": 6,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Verbindlichkeiten",
+      "r": 6,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "94.364,86",
+      "r": 6,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "91.080,72",
+      "r": 6,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "24.847,45",
+      "r": 6,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "94.202,47",
+      "r": 6,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "16.867,27",
+      "r": 6,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "50.302,97",
+      "r": 6,
+      "c": 6,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Vorräte",
+      "r": 7,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "92.708,20",
+      "r": 7,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "6.638,48 ms",
+      "r": 7,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "43.405,06",
+      "r": 7,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "59.591,63 ms",
+      "r": 7,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 7,
+      "c": 5,
+      "rs": 1,
+      "cs": 2,
+      "header": false
+    },
+    {
+      "text": "Eigenkapital",
+      "r": 8,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "15.820,95",
+      "r": 8,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "3.418,02",
+      "r": 8,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "73.823,56",
+      "r": 8,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "29.020,38 ms",
+      "r": 8,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "54.511,55",
+      "r": 8,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "28.237,90",
+      "r": 8,
+      "c": 6,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Forderungen",
+      "r": 9,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "62.933,87",
+      "r": 9,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "-2.269,35",
+      "r": 9,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "40.104,34",
+      "r": 9,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "78.352,41",
+      "r": 9,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "92.631,11",
+      "r": 9,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "-7.269,75",
+      "r": 9,
+      "c": 6,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Umsatzerlöse",
+      "r": 10,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "44.711,04",
+      "r": 10,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "84.710,29",
+      "r": 10,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "56.152,01",
+      "r": 10,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "62.266,04",
+      "r": 10,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "17.624,14",
+      "r": 10,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "977,44",
+      "r": 10,
+      "c": 6,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    }
+  ],
+  "gt_html": "<table><tr><th rowspan=\"2\">Position</th><th>Adjusted</th><th colspan=\"2\">Delta</th><th colspan=\"2\">Reported</th><th>Actual</th></tr><tr><th>Q1</th><th>Q2</th><th>Q3</th><th>Q4</th><th>FY</th><th>YoY</th></tr><tr><td>Sonstige Kosten</td><td colspan=\"2\">n/a</td><td>n/a</td><td>42.118,94</td><td>30.174,59</td><td>43.610,99</td></tr><tr><td>Jahresüberschuss</td><td>-7.564,12</td><td>39.418,84</td><td>86.492,01</td><td>88.066,53</td><td>88.876,71</td><td>77.150,61</td></tr><tr><td>Zinsaufwand</td><td></td><td>83.170,30</td><td>3.987,97</td><td colspan=\"2\">see note 3</td><td>93.428,88</td></tr><tr><td>Abschreibungen</td><td>n/a</td><td>68.680,08</td><td>n/a</td><td>92.761,07</td><td>51.877,08 ms</td><td>20.103,23</td></tr><tr><td>Verbindlichkeiten</td><td>94.364,86</td><td>91.080,72</td><td>24.847,45</td><td>94.202,47</td><td>16.867,27</td><td>50.302,97</td></tr><tr><td>Vorräte</td><td>92.708,20</td><td>6.638,48 ms</td><td>43.405,06</td><td>59.591,63 ms</td><td colspan=\"2\">n/a</td></tr><tr><td>Eigenkapital</td><td>15.820,95</td><td>3.418,02</td><td>73.823,56</td><td>29.020,38 ms</td><td>54.511,55</td><td>28.237,90</td></tr><tr><td>Forderungen</td><td>62.933,87</td><td>-2.269,35</td><td>40.104,34</td><td>78.352,41</td><td>92.631,11</td><td>-7.269,75</td></tr><tr><td>Umsatzerlöse</td><td>44.711,04</td><td>84.710,29</td><td>56.152,01</td><td>62.266,04</td><td>17.624,14</td><td>977,44</td></tr></table>",
+  "pred_html_mineru2_5": "<table><tr><td>Position</td><td>Adjusted\nQ1</td><td>Delta\nQ2</td><td>Q3</td><td>Reported\nQ4</td><td>FY\nFY</td><td>Actual\nYoY</td></tr><tr><td>Sonstige Kosten</td><td colspan=\"2\">n/a</td><td>n/a</td><td>42.118,94</td><td>30.174,59</td><td>43.610,99</td></tr><tr><td>Jahresüberschuss</td><td>-7.564,12</td><td>39.418,84</td><td>86.492,01</td><td>88.066,53</td><td>88.876,71</td><td>77.150,61</td></tr><tr><td>Zinsaufwand</td><td></td><td>83.170,30</td><td>3.987,97</td><td colspan=\"2\">see note 3</td><td>93.428,88</td></tr><tr><td>Abschreibungen</td><td>n/a</td><td>68.680,08</td><td>n/a</td><td>92.761,07</td><td>51.877,08 ms</td><td>20.103,23</td></tr><tr><td>Verbindlichkeiten</td><td>94.364,86</td><td>91.080,72</td><td>24.847,45</td><td>94.202,47</td><td>16.867,27</td><td>50.302,97</td></tr><tr><td>Vorräte</td><td>92.708,20</td><td>6.638,48 ms</td><td>43.405,06</td><td>59.591,63 ms</td><td>n/a</td><td></td></tr><tr><td>Eigenkapital</td><td>15.820,95</td><td>3.418,02</td><td>73.823,56</td><td>29.020,38 ms</td><td>54.511,55</td><td>28.237,90</td></tr><tr><td>Forderungen</td><td>62.933,87</td><td>-2.269,35</td><td>40.104,34</td><td>78.352,41</td><td>92.631,11</td><td>-7.269,75</td></tr><tr><td>Umsatzerlöse</td><td>44.711,04</td><td>84.710,29</td><td>56.152,01</td><td>62.266,04</td><td>17.624,14</td><td>977,44</td></tr></table>",
+  "qa_eval": [
+    {
+      "question": "What is the value for \"Verbindlichkeiten\" in column \"Q1\"?",
+      "expected": "94.364,86",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"Eigenkapital\" in column \"Q3\"?",
+      "expected": "73.823,56",
+      "got": "73.823,56",
+      "ok": true
+    },
+    {
+      "question": "What is the value for \"Abschreibungen\" in column \"FY\"?",
+      "expected": "51.877,08 ms",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"Forderungen\" in column \"Q2\"?",
+      "expected": "-2.269,35",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the sum of all numeric values in column \"Q1\" for the rows ['Verbindlichkeiten', 'Vorräte', 'Umsatzerlöse', 'Eigenkapital', 'Forderungen', 'Jahresüberschuss']?",
+      "expected": 302974.8,
+      "got": "",
+      "ok": false
+    }
+  ]
+}

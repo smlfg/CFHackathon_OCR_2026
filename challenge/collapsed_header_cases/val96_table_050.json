@@ -1,0 +1,350 @@
+{
+  "case": "val96_table_050",
+  "error_class": "dropped-header-row",
+  "image": "val96_table_050.jpg",
+  "teds": 0.7174,
+  "gt_rows": 7,
+  "pred_rows": 6,
+  "qa_ok": 0,
+  "qa_total": 5,
+  "gt_cells": [
+    {
+      "text": "Item",
+      "r": 0,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Min",
+      "r": 0,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Max",
+      "r": 0,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Mean",
+      "r": 0,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Median",
+      "r": 0,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "Std",
+      "r": 0,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": true
+    },
+    {
+      "text": "EBITDA",
+      "r": 1,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 1,
+      "c": 1,
+      "rs": 1,
+      "cs": 2,
+      "header": false
+    },
+    {
+      "text": "61.742,62",
+      "r": 1,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "21.983,77",
+      "r": 1,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "29.693,94",
+      "r": 1,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Operating expenses",
+      "r": 2,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "-8.979,35",
+      "r": 2,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "77.908,77",
+      "r": 2,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "73.873,87",
+      "r": 2,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "51.224,70",
+      "r": 2,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "–",
+      "r": 2,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "EBIT",
+      "r": 3,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "",
+      "r": 3,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 3,
+      "c": 2,
+      "rs": 1,
+      "cs": 2,
+      "header": false
+    },
+    {
+      "text": "see note 3",
+      "r": 3,
+      "c": 4,
+      "rs": 1,
+      "cs": 2,
+      "header": false
+    },
+    {
+      "text": "Revenue",
+      "r": 4,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "96.649,15",
+      "r": 4,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "49.280,01",
+      "r": 4,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "88.141,39",
+      "r": 4,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "82.345,43",
+      "r": 4,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "38.772,03",
+      "r": 4,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Inventory",
+      "r": 5,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "77.631,09",
+      "r": 5,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "21.312,51",
+      "r": 5,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 5,
+      "c": 3,
+      "rs": 1,
+      "cs": 2,
+      "header": false
+    },
+    {
+      "text": "66.954,53",
+      "r": 5,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "Net income",
+      "r": 6,
+      "c": 0,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "n/a",
+      "r": 6,
+      "c": 1,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "8.218,62",
+      "r": 6,
+      "c": 2,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "76.683,29",
+      "r": 6,
+      "c": 3,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "70.714,29",
+      "r": 6,
+      "c": 4,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    },
+    {
+      "text": "85.421,12",
+      "r": 6,
+      "c": 5,
+      "rs": 1,
+      "cs": 1,
+      "header": false
+    }
+  ],
+  "gt_html": "<table><tr><th>Item</th><th>Min</th><th>Max</th><th>Mean</th><th>Median</th><th>Std</th></tr><tr><td>EBITDA</td><td colspan=\"2\">n/a</td><td>61.742,62</td><td>21.983,77</td><td>29.693,94</td></tr><tr><td>Operating expenses</td><td>-8.979,35</td><td>77.908,77</td><td>73.873,87</td><td>51.224,70</td><td>–</td></tr><tr><td>EBIT</td><td></td><td colspan=\"2\">n/a</td><td colspan=\"2\">see note 3</td></tr><tr><td>Revenue</td><td>96.649,15</td><td>49.280,01</td><td>88.141,39</td><td>82.345,43</td><td>38.772,03</td></tr><tr><td>Inventory</td><td>77.631,09</td><td>21.312,51</td><td colspan=\"2\">n/a</td><td>66.954,53</td></tr><tr><td>Net income</td><td>n/a</td><td>8.218,62</td><td>76.683,29</td><td>70.714,29</td><td>85.421,12</td></tr></table>",
+  "pred_html_mineru2_5": "<table><tr><td>EBITDA</td><td>n/a</td><td>61.742,62</td><td>21.983,77</td><td>29.693,94</td></tr><tr><td>Operating expenses</td><td>-8.979,35</td><td>77.908,77</td><td>73.873,87</td><td>51.224,70</td></tr><tr><td>EBIT</td><td colspan=\"2\">n/a</td><td colspan=\"2\">see note 3</td></tr><tr><td>Revenue</td><td>96.649,15</td><td>49.280,01</td><td>88.141,39</td><td>82.345,43</td></tr><tr><td>Inventory</td><td>77.631,09</td><td>21.312,51</td><td>n/a</td><td>66.954,53</td></tr><tr><td>Net income</td><td>n/a</td><td>8.218,62</td><td>76.683,29</td><td>70.714,29</td></tr></table>",
+  "qa_eval": [
+    {
+      "question": "What is the value for \"Operating expenses\" in column \"Max\"?",
+      "expected": "77.908,77",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"Revenue\" in column \"Std\"?",
+      "expected": "38.772,03",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"EBITDA\" in column \"Mean\"?",
+      "expected": "61.742,62",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the value for \"EBITDA\" in column \"Std\"?",
+      "expected": "29.693,94",
+      "got": "",
+      "ok": false
+    },
+    {
+      "question": "What is the sum of all numeric values in column \"Max\" for the rows ['Operating expenses', 'Revenue', 'Inventory', 'Net income']?",
+      "expected": 156719.91,
+      "got": "",
+      "ok": false
+    }
+  ]
+}
