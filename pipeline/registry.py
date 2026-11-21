@@ -123,6 +123,8 @@ def build(offline: bool = False, write: bool = True) -> dict:
         for model in models:
             if model["status"] != "ready" or not model.get("hf_repo"):
                 continue
+            if model.get("runtime") not in ("mlx", "ollama"):
+                continue  # local runtime (tesseract), not a HF repo
             if not hf_exists(model["hf_repo"]):
                 model["status"] = "repo_missing"
                 model["note"] = f"HF repo does not resolve: {model['hf_repo']}"

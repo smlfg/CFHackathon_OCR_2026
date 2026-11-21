@@ -9,6 +9,18 @@
   },
   "specialists": [
     {
+      "id": "tesseract-baseline",
+      "name": "Tesseract 5 (floor baseline)",
+      "hf_repo": "local:tesseract",
+      "params_b": null,
+      "quant": "",
+      "runtime": "tesseract",
+      "fmt": "html",
+      "max_edge": 0,
+      "prompt": "",
+      "note": "non-optimized floor: plain Tesseract TSV, words clustered into rows/columns, no spans/pre/post-processing; must reproduce ~0.342 on dev"
+    },
+    {
       "id": "paddleocr-vl",
       "name": "PaddleOCR-VL 0.9B",
       "hf_repo": "mlx-community/PaddleOCR-VL-8bit",
@@ -48,7 +60,8 @@
       "quant": "8bit",
       "prompt": "<image>\n<|grounding|>Convert the document to markdown.",
       "fmt": "auto",
-      "max_edge": 0
+      "max_edge": 0,
+      "note": "load_error: mlx-community build has no processor_class, mlx-vlm 0.8 cannot instantiate it"
     },
     {
       "id": "deepseek-ocr-2",
@@ -58,7 +71,8 @@
       "quant": "8bit",
       "prompt": "<image>\n<|grounding|>Convert the document to markdown.",
       "fmt": "auto",
-      "max_edge": 0
+      "max_edge": 0,
+      "note": "load_error: mlx-community build has no processor_class, mlx-vlm 0.8 cannot instantiate it"
     },
     {
       "id": "nanonets-ocr2-3b",
@@ -128,7 +142,8 @@
       "quant": "bf16",
       "prompt": "OCR with format: ",
       "fmt": "auto",
-      "max_edge": 0
+      "max_edge": 0,
+      "note": "load_error: needs torch + torchvision + verovio in the server env"
     },
     {
       "id": "qwen3-vl-4b",
@@ -250,7 +265,7 @@
       "hf_repo": "mlx-community/dots.mocr-8bit",
       "params_b": 3.0,
       "quant": "8bit",
-      "prompt": "Table Recognition:",
+      "prompt": "Convert this table to HTML.",
       "fmt": "auto",
       "max_edge": 0
     },
@@ -272,7 +287,8 @@
       "params_b": 14.0,
       "quant": "4bit",
       "fmt": "auto",
-      "max_edge": 1536
+      "max_edge": 1536,
+      "note": "load_error: MLX weights do not match the mlx-vlm model definition (441 unexpected parameters)"
     }
   ]
 }

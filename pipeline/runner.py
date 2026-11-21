@@ -17,6 +17,12 @@ from pathlib import Path
 from . import config, convert, dataset, providers
 
 
+def dirs_for(model_id: str, dataset_name: str) -> tuple[Path, Path]:
+    if dataset_name == "dev":
+        return config.RAW / model_id, config.PRED / model_id
+    return config.RAW / dataset_name / model_id, config.PRED / dataset_name / model_id
+
+
 def prompt_hash(prompt: str) -> str:
     return hashlib.sha256(prompt.encode()).hexdigest()
 
@@ -68,7 +74,7 @@ def preprocess(path: Path, max_edge: int) -> bytes:
 
 def run(model: dict, ds: dataset.Dataset, *, force: bool = False, limit: int | None = None,
         jobs: int = 1) -> dict:
-    raw_dir = config.RAW / model["id"]
+    raw_dir, pred_dir = dirs_for(model["id"], ds.name)
     raw_dir.mkdir(parents=True, exist_ok=True)
     provider = providers.get(model["runtime"])
     loaded = provider.load(model["hf_repo"])
@@ -105,7 +111,6 @@ def run(model: dict, ds: dataset.Dataset, *, force: bool = False, limit: int | N
     if failed:
         (raw_dir / "failures.json").write_text(json.dumps(failed, indent=1))
 
-    pred_dir = config.PRED / model["id"]
     pred_dir.mkdir(parents=True, exist_ok=True)
     converted = _convert_all(model, raw_dir, pred_dir)
     return collect(model, ds, converted=converted, loaded=loaded,
@@ -115,8 +120,7 @@ def run(model: dict, ds: dataset.Dataset, *, force: bool = False, limit: int | N
 def collect(model: dict, ds: dataset.Dataset, *, converted: dict | None = None,
             loaded: dict | None = None, n_run: int = 0, n_failed: int = 0) -> dict:
     """Build the run row from whatever is already on disk (no inference)."""
-    raw_dir = config.RAW / model["id"]
-    pred_dir = config.PRED / model["id"]
+    raw_dir, pred_dir = dirs_for(model["id"], ds.name)
     pred_dir.mkdir(parents=True, exist_ok=True)
     if converted is None:
         converted = _convert_all(model, raw_dir, pred_dir)
@@ -128,8 +132,12 @@ def collect(model: dict, ds: dataset.Dataset, *, converted: dict | None = None,
 
     empty_tables = converted["missing"]
     adapter_flag = ""
-    if converted["tables"] and (empty_tables / converted["tables"] > config.MAX_EMPTY_RATE
-                                or converted["median_cells"] < 2):
+    if converted["tables"] and (
+            empty_tables / converted["tables"] > config.MAX_EMPTY_RATE
+            or converted["median_cells"] < 2
+            or (converted.get("empty_rate") or 0) > 0.5):
+        adapter_flag = "ADAPTER_SUSPECT"
+    if not converted["tables"] and empty_tables:
         adapter_flag = "ADAPTER_SUSPECT"
 
     return {
@@ -163,8 +171,9 @@ def store_run_id(model: dict, dataset_name: str) -> str:
 
 def _convert_all(model: dict, raw_dir: Path, pred_dir: Path) -> dict:
     fmt = model.get("fmt", "auto")
-    tables = cell_counts = empty_cells = 0
+    tables = cell_counts = 0
     counts: list[int] = []
+    rates: list[float] = []
     missing = 0
     for path in sorted(raw_dir.glob("*.txt")):
         html, info = convert.convert(path.read_text(), fmt)
@@ -175,15 +184,18 @@ def _convert_all(model: dict, raw_dir: Path, pred_dir: Path) -> dict:
         (pred_dir / f"{path.stem}.html").write_text(html)
         tables += 1
         cell_counts += info["cells"]
-        empty_cells += round(info["empty_rate"] * info["cells"])
+        rates.append(info["empty_rate"])
         counts.append(info["cells"])
+    # mean of per-table rates: one runaway table cannot mask the rest
     return {
         "fmt": fmt,
         "tables": tables,
         "missing": missing,
         "cells": cell_counts,
         "median_cells": statistics.median(counts) if counts else 0,
-        "empty_rate": round(empty_cells / cell_counts, 3) if cell_counts else 1.0,
+        "empty_rate": round(statistics.mean(rates), 3) if rates else 1.0,
+        "empty_rate_max": round(max(rates), 3) if rates else 1.0,
+        "cells_max": max(counts) if counts else 0,
     }
 
 

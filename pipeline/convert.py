@@ -16,7 +16,7 @@ from __future__ import annotations
 import html as htmllib
 import re
 
-TAG = re.compile(r"<(fcel|ecel|lcel|ucel|xcel|nl)>")
+TAG = re.compile(r"<(fcel|ecel|ched|lcel|ucel|xcel|nl)>")
 LOC = re.compile(r"<loc_\d+>|<[a-z_]+_\d+>")
 CELL = re.compile(r"<t[dh]\b", re.I)
 
@@ -31,7 +31,7 @@ def otsl_to_cells(text: str) -> list[dict]:
         tag, body = parts[i], parts[i + 1]
         if tag == "nl":
             r, c = r + 1, 0
-        elif tag in ("fcel", "ecel"):
+        elif tag in ("fcel", "ecel", "ched"):
             cell = {"text": "" if tag == "ecel" else body.strip(), "r": r, "c": c,
                     "rs": 1, "cs": 1}
             cells.append(cell)
@@ -142,13 +142,28 @@ def doctags_to_cells(text: str) -> list[dict]:
     return otsl_to_cells(cleaned)
 
 
+def _has_pipe_table(text: str) -> bool:
+    lines = [line for line in text.splitlines() if line.count("|") >= 2]
+    return len(lines) >= 2 and any(re.fullmatch(r"[\s|:\-]+", line) for line in lines)
+
+
 def first_html_table(text: str) -> str | None:
-    if not CELL.search(text):
-        return None
-    start = text.lower().find("<table")
-    end = text.lower().rfind("</table>")
+    lower = text.lower()
+    start = lower.find("<table")
+    end = lower.rfind("</table>")
     if start >= 0 and end > start:
-        return text[start:end + len("</table>")]
+        candidate = text[start:end + len("</table>")]
+        if CELL.search(candidate):          # real cells, not a <table> wrapper around markdown
+            return candidate
+    # a markdown pipe table is more trustworthy than half a <table> tag
+    if _has_pipe_table(text):
+        return None
+    # some VLMs emit bare <tr> rows without the enclosing <table>
+    if CELL.search(text):
+        row_start = lower.find("<tr")
+        row_end = lower.rfind("</tr>")
+        if row_start >= 0 and row_end > row_start:
+            return "<table>" + text[row_start:row_end + len("</tr>")] + "</table>"
     return None
 
 

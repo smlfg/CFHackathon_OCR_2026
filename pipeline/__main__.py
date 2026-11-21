@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import sys
 
 from . import board, config, dataset, providers, registry, runner, score, store
@@ -48,7 +49,8 @@ def cmd_list(args) -> None:
     for model in data["models"]:
         if args.status and model["status"] != args.status:
             continue
-        print(f"{model['status']:12s} {model['id']:28s} {model['params_b']:>5.2f}B "
+        params = f"{model['params_b']:5.2f}B" if model.get("params_b") else "     –"
+        print(f"{model['status']:12s} {model['id']:28s} {params} "
               f"{(model.get('quant') or '–'):5s} {model.get('fmt'):8s} {model.get('hf_repo','')}")
 
 
@@ -78,16 +80,25 @@ def cmd_run(args) -> None:
           f"{', '.join(m['id'] for m in selected)}\n", flush=True)
 
     for index, model in enumerate(selected):
-        print(f"=== {model['id']} ({model.get('name')}, {model['params_b']}B)", flush=True)
+        print(f"=== {model['id']} ({model.get('name')}, "
+              f"{model.get('params_b') or '–'}B)", flush=True)
+        raw_dir, pred_dir = runner.dirs_for(model["id"], ds.name)
         if store.has(model["id"], ds.name, runner.prompt_hash(model["prompt"])) \
                 and not args.force and not args.rescore:
             print("  already scored (use --force to re-run)\n", flush=True)
             continue
         if args.rescore:
-            if not (config.RAW / model["id"]).glob("*.txt"):
+            if not any(raw_dir.glob("*.txt")):
                 print("  no raw output to re-score\n", flush=True)
                 continue
             run = runner.collect(model, ds)
+            previous = store.get(run["run_id"])
+            if previous and previous["status"] not in ("ok",) \
+                    and not run["meta"]["converted"].get("tables"):
+                run["status"] = previous["status"]
+                note = json.loads(previous["meta"] or "{}").get("note")
+                if note:
+                    run["meta"]["note"] = note
         else:
             ok, need, free = runner.disk_check(model)
             if not ok:
@@ -104,7 +115,7 @@ def cmd_run(args) -> None:
                 run = runner.run(model, ds, force=args.force, limit=args.limit)
             except providers.ProviderError as exc:
                 print(f"  ERROR: {exc}\n", flush=True)
-                failed_run = runner.collect(model, ds) if (config.RAW / model["id"]).exists() else None
+                failed_run = runner.collect(model, ds) if raw_dir.exists() else None
                 if failed_run is not None:
                     failed_run["status"] = "load_error"
                     failed_run["meta"]["note"] = str(exc)[:400]
@@ -113,9 +124,10 @@ def cmd_run(args) -> None:
                     _prune(model)
                 continue
 
-        aggregate, tables = score.score(ds.path, config.PRED / model["id"])
+        aggregate, tables = score.score(ds.path, pred_dir)
         run.update(aggregate)
-        run["status"] = "error" if aggregate["empty_tables"] == aggregate["n_tables"] else run["status"]
+        if run["status"] == "ok" and aggregate["empty_tables"] == aggregate["n_tables"]:
+            run["status"] = "error"
         store.save(run, tables)
         board.render(ds.name)
         print(f"  FINAL {run['final']:.4f}  TEDS {run['teds_weighted']:.4f}  "
@@ -176,12 +188,55 @@ def cmd_board(args) -> None:
         print(f"[board] {name}: {paths['md']} · {paths['html']}")
 
 
+def cmd_explain(args) -> None:
+    rows = store.runs(args.dataset)
+    if args.model:
+        rows = [r for r in rows if args.model.lower() in (r["model_id"] + r["model_name"]).lower()]
+    if not rows:
+        raise SystemExit("no matching run")
+    for row in rows:
+        if row["status"] != "ok":
+            continue
+        print(f"\n{row['model_name']}  [{row['dataset']}]  FINAL {row['final']:.4f}")
+        print(board.explain(row))
+
+
+def cmd_verify(args) -> None:
+    """Recompute every stored run with the official scorer and report drift."""
+    from .score import sa
+
+    rows = store.runs(args.dataset)
+    if args.model:
+        rows = [r for r in rows if args.model.lower() in (r["model_id"] + r["model_name"]).lower()]
+    checked = drift = 0
+    old = store.superseded(args.dataset)
+    print(f"{'model':30s} {'set':6s} {'stored S':>9s} {'score_all':>9s} {'Δ':>8s}  status")
+    for row in rows:
+        if row["status"] != "ok":
+            continue
+        ds = dataset.load(row["dataset"])
+        _, pred_dir = runner.dirs_for(row["model_id"], row["dataset"])
+        official = sa.score_team(row["model_id"], ds.path, pred_dir)
+        delta = official["final"] - (row["final"] or 0.0)
+        checked += 1
+        good = abs(delta) < 5e-5
+        drift += 0 if good else 1
+        print(f"{row['model_id']:30s} {row['dataset']:6s} {row['final'] or 0:9.4f} "
+              f"{official['final']:9.4f} {delta:+8.5f}  {'OK' if good else 'DRIFT'}"
+              + ("" if good else "  <-- pipeline disagrees with score_all.py"))
+    print(f"\n{checked} runs recomputed, {drift} drifted")
+    if old:
+        print(f"{len(old)} superseded rows skipped (older prompt/config, predictions replaced)")
+    if drift:
+        raise SystemExit(1)
+
+
 def cmd_status(args) -> None:
     data = registry.load()
     print(f"registry: {data['counts']} (built {data['generated']})")
-    for runtime in ("mlx", "ollama"):
+    for runtime in ("mlx", "ollama", "tesseract"):
         provider = providers.get(runtime)
-        print(f"{runtime:7s} {provider.base_url:32s} "
+        print(f"{runtime:9s} {str(getattr(provider, 'base_url', '-')):28s} "
               f"{'up' if provider.healthy() else 'DOWN'}")
     for name in ("dev", "val"):
         path = config.dataset_dir(name)
@@ -232,12 +287,20 @@ def main(argv: list[str] | None = None) -> None:
     b.add_argument("--dataset", default=None)
     b.set_defaults(func=cmd_board)
 
+    e = sub.add_parser("explain", help="print S = 0.85*TEDS_w + 0.15*QA per run")
+    e.add_argument("--model", default=None, help="id or substring")
+    e.add_argument("--dataset", default=None)
+    e.set_defaults(func=cmd_explain)
+
+    v = sub.add_parser("verify", help="recompute every run with score_all.py and report drift")
+    v.add_argument("--model", default=None)
+    v.add_argument("--dataset", default=None)
+    v.set_defaults(func=cmd_verify)
+
     s = sub.add_parser("status", help="endpoints, datasets, scored models")
     s.set_defaults(func=cmd_status)
 
     args = parser.parse_args(argv)
-    if getattr(args, "model", None) and not args.all and not args.model:
-        pass
     args.func(args)
 
 

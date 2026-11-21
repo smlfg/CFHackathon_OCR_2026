@@ -13,9 +13,37 @@ data -> run model -> convert to HTML -> score -> store -> leaderboard -> next mo
 |---|---|---|
 | orchestration, conversion, scoring, metrics | **container** | reproducible, no host Python state |
 | inference | **host** (`scripts/mlx_server.py`) | Docker on macOS has no Metal; CPU inference is 10–50× slower |
+| Tesseract floor | **container** (`runtime: tesseract`) | CPU-only, ~0.2 s/table, no weights to ship |
 
-The container only talks HTTP (`MLX_BASE_URL`, `OLLAMA_BASE_URL`), so the same image runs on a
-CUDA box later with a different endpoint.
+The container only talks HTTP (`MLX_BASE_URL`, `OLLAMA_BASE_URL`) to the two model runtimes, so the
+same image runs on a CUDA box later with a different endpoint. The Tesseract baseline runs in-process.
+
+## The objective, everywhere
+
+Every number this pipeline prints is the official competition score, taken from `evaluate.py`
+(`W_TEDS`, `W_QA`, `TIER_WEIGHTS`) — not re-implemented:
+
+```
+S = 0.85 · TEDS_w + 0.15 · QA          TEDS_w = 0.10·T0 + 0.20·T1 + 0.30·T2 + 0.40·T3
+tie-break: CellF1
+```
+
+Degradation tiers: T0 clean (10%), T1 scanner (20%), T2 phone photo (30%), T3 fax/archive (40%).
+
+Per run this is itemised, never just a total:
+
+- `LEADERBOARD.md` / `leaderboard.html` → "Objective decomposition" table: `T0×0.10` … `T3×0.40`,
+  `TEDS_w`, `0.85×TEDS_w`, `QA`, `0.15×QA`, `S`.
+- `metrics/runs/<run_id>.html` → the same line printed above the per-table view.
+- `explain` prints the arithmetic for any run.
+- `verify` recomputes **every stored run** with `score_all.py` itself and fails on any drift.
+
+```bash
+docker compose run --rm eval explain --model mineru
+docker compose run --rm eval verify
+```
+
+`verify` output on the current dev board: 23 runs recomputed, 0 drifted.
 
 ## Usage
 
@@ -34,6 +62,9 @@ docker compose run --rm eval registry build
 # one model, or all of them
 docker compose run --rm eval run --model paddleocr-vl --dataset dev
 docker compose run --rm eval run --all --dataset dev
+
+# floor baseline: plain Tesseract, no optimization (ships in the image)
+docker compose run --rm eval run --model tesseract-baseline --dataset dev
 
 # inspect
 docker compose run --rm eval status
@@ -78,8 +109,9 @@ git_sha, prompt_hash, quant, max_edge, fmt, adapter_flag`.
 
 ## Model registry
 
-`registry/manual.json` holds the OCR specialists (repo, prompt, output format, image cap) and the
-matching rules for OCRBench names. `registry/models.json` is generated:
+`registry/manual.json` holds the OCR specialists (repo, prompt, output format, image cap), the
+Tesseract floor (`runtime: tesseract`, no weights) and the matching rules for OCRBench names.
+`registry/models.json` is generated:
 
 ```bash
 docker compose run --rm eval registry build [--offline]
@@ -121,6 +153,16 @@ evicts it from the second slot, and `/health` shows `next` alongside the loaded 
 `latex`, `markdown`, `doctags` (granite-docling, SmolDocling), `html`, `auto`. If a model's output
 does not convert, the board says so instead of silently scoring zero.
 
+## Tesseract floor (non-optimized)
+
+`runtime: tesseract` runs `baselines/baseline_tesseract.py` in-process: Tesseract's TSV words are
+clustered into rows by y-center and columns by x-gap, then written as a plain grid `<table>`.
+It has no span detection, no deskew/denoise/upscale and no post-processing — merged cells are wrong
+by construction. That is the point: it is the number every model on the board has to beat
+(`~0.342` on dev, `0.2 s/table`). The image is normalized to RGB before pytesseract, so the OCR
+does not depend on whether the source file was JPEG or PNG. Verified inside the built image
+(Debian Tesseract): `0.3441`, same 0.2 s/table — Tesseract builds differ, the organizer notes ±0.01.
+
 ## Endpoints
 
 | variable | default | meaning |
@@ -130,6 +172,17 @@ does not convert, the board says so instead of silently scoring zero.
 | `TABLESALT_MAX_PARAMS` | `15` | registry size limit |
 | `TABLESALT_MAX_EMPTY_RATE` | `0.20` | adapter gate threshold |
 | `TABLESALT_TIMEOUT` | `900` | per-request timeout in seconds |
+| `runtime: tesseract` | in-process | floor baseline; needs the `tesseract` binary, no endpoint or weights |
+
+## Known limitations
+
+- `mlx-community/DeepSeek-OCR-8bit` and `DeepSeek-OCR-2-8bit` fail to load under mlx-vlm 0.8.0:
+  the repos ship no `processor_class`, so `AutoProcessor` cannot instantiate them. Recorded as
+  `load_error`, not as a score.
+- `mlx-community/GOT-OCR2_0-bf16` needs `torch`, `torchvision` and `verovio` in the server env.
+  Not installed here because of disk pressure; add them to the `uv run --with ...` line if wanted.
+- Models above ~10 GB of weights are skipped with `no_space` while the disk is near full; the board
+  says so instead of pretending the model does not exist.
 
 ## Fully containerized fallback
 

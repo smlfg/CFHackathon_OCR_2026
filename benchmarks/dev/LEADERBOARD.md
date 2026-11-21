@@ -1,11 +1,11 @@
 # TableSalt OCR leaderboard — dev
 
-22 scored models · dataset `dev` · official objective **S = 0.85 · TEDS_w + 0.15 · QA**, TEDS_w = T0 10% · T1 20% · T2 30% · T3 40% (degradation tiers).
+23 scored models · dataset `dev` · official objective **S = 0.85 · TEDS_w + 0.15 · QA**, TEDS_w = T0 10% · T1 20% · T2 30% · T3 40% (degradation tiers).
 Tie-break: CellF1 0.85·TEDS_w + 0.15·QA = S.
 
 | # | Model | Params | Quant | fmt | T0 | T1 | T2 | T3 | QA | CellF1 | FINAL | s/table |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| 1 | MinerU2.5 1.2B | 1.20B | bf16 | auto | 0.959 | 0.992 | 0.956 | 0.966 | 0.958 | 0.937 | **0.9659** | 2.6 |
+| 1 | MinerU2.5 1.2B | 1.20B | bf16 | auto | 0.959 | 0.992 | 0.956 | 0.966 | 0.958 | 0.937 | **0.9659** | 2.1 |
 | 2 | Chandra OCR 2 | 9.00B | 8bit | auto | 0.932 | 0.990 | 0.961 | 0.960 | 0.967 | 0.975 | **0.9640** | 14.9 |
 | 3 | PaddleOCR-VL 0.9B | 0.90B | 8bit | otsl | 0.941 | 0.984 | 0.961 | 0.955 | 0.933 | 0.949 | **0.9570** | 1.5 |
 | 4 | dots.ocr 3B | 3.00B | 8bit | auto | 0.910 | 0.937 | 0.927 | 0.942 | 1.000 | 0.958 | **0.9432** | 6.1 |
@@ -27,6 +27,7 @@ Tie-break: CellF1 0.85·TEDS_w + 0.15·QA = S.
 | 20 | Molmo2 8B | 8.00B | 4bit | auto | 0.689 | 0.838 | 0.637 | 0.537 | 0.233 | 0.277 | **0.5810** | 26.4 |
 | 21 | SmolDocling 256M | 0.26B | bf16 | doctags | 0.512 | 0.559 | 0.657 | 0.431 | 0.283 | 0.362 | **0.4953** | 11.5 |
 | 22 | Granite-Docling 258M | 0.26B | bf16 | doctags | 0.801 | 0.892 | 0.443 | 0.309 | 0.258 | 0.386 | **0.4766** | 3.7 |
+| 23 | Tesseract 5 (floor baseline) | – | – | html | 0.539 | 0.490 | 0.268 | 0.309 | 0.267 | 0.159 | **0.3424** | 0.2 |
 
 ## Objective decomposition (per run)
 
@@ -54,6 +55,7 @@ Tie-break: CellF1 0.85·TEDS_w + 0.15·QA = S.
 | Molmo2 8B | 0.0689 | 0.1676 | 0.1912 | 0.2147 | 0.6424 | 0.5460 | 0.2333 | 0.0350 | **0.5810** |
 | SmolDocling 256M | 0.0512 | 0.1118 | 0.1970 | 0.1726 | 0.5327 | 0.4528 | 0.2833 | 0.0425 | **0.4953** |
 | Granite-Docling 258M | 0.0801 | 0.1785 | 0.1328 | 0.1236 | 0.5151 | 0.4378 | 0.2583 | 0.0387 | **0.4766** |
+| Tesseract 5 (floor baseline) | 0.0539 | 0.0980 | 0.0803 | 0.1236 | 0.3558 | 0.3024 | 0.2667 | 0.0400 | **0.3424** |
 
 ## Not scored
 

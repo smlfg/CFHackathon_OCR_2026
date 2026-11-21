@@ -24,9 +24,11 @@ import pytesseract
 from PIL import Image
 
 
-def words_from_image(img_path):
-    data = pytesseract.image_to_data(Image.open(img_path),
-                                     output_type=pytesseract.Output.DICT)
+def words_from_image(image):
+    """Tesseract TSV words. `image` is a path or a PIL.Image."""
+    data = pytesseract.image_to_data(
+        Image.open(image) if isinstance(image, (str, Path)) else image,
+        output_type=pytesseract.Output.DICT)
     words = []
     for i, txt in enumerate(data["text"]):
         txt = txt.strip()
@@ -77,7 +79,18 @@ def column_edges(rows):
 
 
 def to_html(img_path):
-    words = words_from_image(img_path)
+    return to_html_image(Image.open(img_path))
+
+
+def to_html_image(image):
+    """Naive image -> grid <table>. No spans, no preprocessing, no postprocess.
+
+    `image` is normalized to RGB so pytesseract writes a lossless PNG temp file.
+    Handing it a JPEG-backed image makes pytesseract re-encode the JPEG before
+    OCR (PIL default quality), which lowers the score for a reason that has
+    nothing to do with table recognition.
+    """
+    words = words_from_image(image.convert("RGB"))
     if not words:
         return "<table></table>"
     rows = cluster_rows(words)

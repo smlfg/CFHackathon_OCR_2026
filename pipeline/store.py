@@ -119,17 +119,31 @@ def runs(dataset: str | None = None, latest_only: bool = True) -> list[dict]:
     if dataset:
         query += " WHERE dataset = ?"
         args = (dataset,)
-    query += " ORDER BY final DESC"
-    rows = [dict(r) for r in con.execute(query, args)]
+    # chronological, so "latest" means the run whose predictions are on disk now
+    rows = [dict(r) for r in con.execute(query + " ORDER BY ts ASC", args)]
     con.close()
     if not latest_only:
         return rows
     best: dict[tuple[str, str], dict] = {}
     for row in rows:
-        key = (row["model_id"], row["dataset"])
-        if key not in best:
-            best[key] = row
+        best[(row["model_id"], row["dataset"])] = row
     return sorted(best.values(), key=lambda r: r["final"] or 0, reverse=True)
+
+
+def superseded(dataset: str | None = None) -> list[dict]:
+    con = connect()
+    query = "SELECT run_id, model_id, dataset, ts, final FROM runs"
+    args: tuple = ()
+    if dataset:
+        query += " WHERE dataset = ?"
+        args = (dataset,)
+    rows = [dict(r) for r in con.execute(query + " ORDER BY ts ASC", args)]
+    con.close()
+    newest: dict[tuple[str, str], str] = {}
+    for row in rows:
+        newest[(row["model_id"], row["dataset"])] = row["run_id"]
+    keep = set(newest.values())
+    return [r for r in rows if r["run_id"] not in keep]
 
 
 def table_rows(rid: str) -> list[dict]:
@@ -146,3 +160,10 @@ def has(model_id: str, dataset: str, prompt_hash: str) -> bool:
                       (run_id({"id": model_id}, dataset, prompt_hash),)).fetchone()
     con.close()
     return hit is not None
+
+
+def get(rid: str) -> dict | None:
+    con = connect()
+    row = con.execute("SELECT * FROM runs WHERE run_id = ?", (rid,)).fetchone()
+    con.close()
+    return dict(row) if row else None

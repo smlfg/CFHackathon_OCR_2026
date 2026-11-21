@@ -1,14 +1,20 @@
-"""Model providers: one small HTTP surface per runtime.
+"""Model providers: one small surface per runtime.
 
-`mlx`    -> scripts/mlx_server.py on the host (Metal). Fast path on Apple Silicon.
-`ollama` -> host Ollama, for models that only exist as GGUF.
+`mlx`       -> scripts/mlx_server.py on the host (Metal). Fast path on Apple Silicon.
+`ollama`    -> host Ollama, for models that only exist as GGUF.
+`tesseract` -> local Tesseract, the non-optimized floor baseline (CPU, no weights).
 
-Both are addressed over HTTP, so the container never needs a GPU or model weights.
+The first two are addressed over HTTP, so the container never needs a GPU or model
+weights. Tesseract runs in-process; it is fast enough per table (~0.2 s) and every
+image it needs is on disk anyway.
 """
 from __future__ import annotations
 
 import base64
+import io
 import json
+import shutil
+import subprocess
 import time
 import urllib.error
 import urllib.request
@@ -153,9 +159,55 @@ class OllamaProvider:
         return out["message"]["content"], usage
 
 
+class TesseractProvider:
+    """Local Tesseract + the naive row/column clustering of the floor baseline.
+
+    Deliberately not optimized: English model, default page segmentation, no
+    deskew/denoise/upscale, no span detection. It exists so every model on the
+    board has a measurable floor.
+    """
+
+    name = "tesseract"
+    base_url = "local"
+
+    def healthy(self) -> bool:
+        return shutil.which("tesseract") is not None
+
+    def version(self) -> str:
+        try:
+            out = subprocess.run(["tesseract", "--version"], capture_output=True,
+                                 text=True, timeout=10)
+            return out.stdout.splitlines()[0].strip() if out.stdout else "tesseract"
+        except (OSError, subprocess.SubprocessError):
+            return "tesseract"
+
+    def load(self, repo: str) -> dict:
+        if not self.healthy():
+            raise ProviderError(
+                "tesseract not on PATH (macOS: brew install tesseract, "
+                "Debian: apt install tesseract-ocr)")
+        return {"loaded": self.version(), "pulled": False}
+
+    def generate(self, image_png: bytes, prompt: str, *, max_tokens: int = 4096,
+                 temperature: float = 0.0) -> tuple[str, dict]:
+        from PIL import Image
+
+        from baselines.baseline_tesseract import to_html_image
+
+        started = time.time()
+        image = Image.open(io.BytesIO(image_png))
+        try:
+            text = to_html_image(image)
+        except Exception as exc:  # binary missing, unreadable image, ...
+            raise ProviderError(f"tesseract: {exc}") from exc
+        return text, {"seconds": round(time.time() - started, 2)}
+
+
 def get(runtime: str, **kwargs):
     if runtime == "mlx":
         return MlxProvider(kwargs.get("base_url"))
     if runtime == "ollama":
         return OllamaProvider(kwargs.get("base_url"))
-    raise ProviderError(f"unknown runtime '{runtime}' (expected mlx or ollama)")
+    if runtime == "tesseract":
+        return TesseractProvider()
+    raise ProviderError(f"unknown runtime '{runtime}' (expected mlx, ollama or tesseract)")

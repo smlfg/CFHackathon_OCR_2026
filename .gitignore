@@ -1,5 +1,6 @@
 # Python
 .venv/
+.venv-tatr/
 __pycache__/
 *.pyc
 
@@ -22,6 +23,11 @@ out_*/
 ocrbench_v2/
 
 .DS_Store
+
+# Local agent instructions for this hackathon — never committed, never shipped.
+AGENTS.md
+CLAUDE.md
+.cursor/
 
 # Eval pipeline outputs (regenerate with `python -m pipeline run`)
 raw/

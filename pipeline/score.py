@@ -22,6 +22,7 @@ def _load(name: str):
 
 ev = _load("evaluate")
 qa = _load("eval_qa")
+sa = _load("score_all")
 
 
 def score(gt_dir: Path, pred_dir: Path) -> tuple[dict, list[dict]]:
