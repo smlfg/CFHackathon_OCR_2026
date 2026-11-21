@@ -22,6 +22,14 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/../.." && pwd)"
 IMAGE="${TATR_CUDA_IMAGE:-tablesalt-tatr-cuda:amd64}"
 
+# The image is linux/amd64 (it has to be: CUDA). On the arm64 Mac that means
+# emulation, which is fine for a correctness check but makes the timings
+# meaningless — the CUDA numbers have to come from the 4070 laptop.
+PLATFORM_FLAG=""
+if [[ "$(uname -m)" == "arm64" || "$(uname -m)" == "aarch64" ]]; then
+  PLATFORM_FLAG="--platform linux/amd64"
+fi
+
 GT="data/dev"
 OUT="out/cuda_dev"
 DEVICE="cuda"
@@ -59,36 +67,55 @@ fi
 
 mkdir -p "$ROOT/$OUT"
 
-echo "== GPU check =="
-docker run --rm --gpus all "$IMAGE" --help >/dev/null 2>&1 \
-  && echo "  nvidia runtime OK" \
-  || echo "  WARNING: --gpus all failed. Is the NVIDIA driver + nvidia-container-toolkit installed?"
+# The GPU flag only makes sense when we actually want the GPU. On a machine
+# without an NVIDIA driver, `--gpus all` makes docker fail before the
+# container starts, so we probe for it and degrade to a CPU run with a warning
+# instead of dying.
+GPU_FLAG=""
+if [[ "$DEVICE" == "cuda" ]]; then
+  echo "== GPU check =="
+  if docker run --rm --gpus all "$IMAGE" --help >/dev/null 2>&1; then
+    GPU_FLAG="--gpus all"
+    echo "  nvidia runtime OK"
+  else
+    echo "  WARNING: --gpus all failed (no NVIDIA driver / nvidia-container-toolkit?)."
+    echo "  Falling back to a CPU run in the same image. The timing numbers will"
+    echo "  not be CUDA numbers — run this on the machine with the 4070."
+    DEVICE="cpu"
+  fi
+fi
 
 # ---------------------------------------------------------------------------
-# GPU run
+# Runs
+#
+# The repo is mounted at /repo, NOT over /app: /app holds the image's own
+# harness and weights, and mounting over it would hide them. Keeping the repo
+# at a separate path means the paths inside the container are the same relative
+# paths as on the host, so the harness writes to /repo/<out> and the result
+# lands in <out>/ on the host — not nested twice.
 # ---------------------------------------------------------------------------
 echo
-echo "== CUDA run: $GT =="
-docker run --rm --gpus all \
+echo "== ${DEVICE^^} run: $GT =="
+docker run --rm $PLATFORM_FLAG $GPU_FLAG \
   --network none \
   -e TATR_DEVICE="$DEVICE" \
-  -v "$ROOT/data:/app/data:ro" \
-  -v "$ROOT/$OUT:/app/out" \
+  -v "$ROOT:/repo" \
+  -w /repo \
   "$IMAGE" --gt "$GT" --out "$OUT" --device "$DEVICE" --repeat "$REPEAT" --workers "$WORKERS"
 
 # ---------------------------------------------------------------------------
 # CPU reference on the same machine (the comparison that makes the GPU number mean something)
 # ---------------------------------------------------------------------------
-if [[ "$CPU_BASELINE" == "1" ]]; then
+if [[ "$CPU_BASELINE" == "1" && "$DEVICE" != "cpu" ]]; then
   CPU_OUT="${OUT}_cpu"
   mkdir -p "$ROOT/$CPU_OUT"
   echo
   echo "== CPU reference run (same machine, same data): $CPU_OUT =="
-  docker run --rm \
+  docker run --rm $PLATFORM_FLAG \
     --network none \
     -e TATR_DEVICE=cpu \
-    -v "$ROOT/data:/app/data:ro" \
-    -v "$ROOT/$CPU_OUT:/app/out" \
+    -v "$ROOT:/repo" \
+    -w /repo \
     "$IMAGE" --gt "$GT" --out "$CPU_OUT" --device cpu --repeat "$REPEAT" --workers "$WORKERS"
 fi
 

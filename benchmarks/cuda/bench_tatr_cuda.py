@@ -348,10 +348,21 @@ def main() -> int:
 
 
 def score_with_official_scorer(gt_dir: Path, out_dir: Path) -> dict:
-    """Run score_all.py unchanged. It is the truth; we never re-implement it."""
-    cmd = [sys.executable, str(APP / "score_all.py"),
+    """Run score_all.py unchanged. It is the truth; we never re-implement it.
+
+    Prefer the copy in the mounted repo over the one baked into the image:
+    the repo is the version under review, the image copy can be older.
+    """
+    scorer = APP / "score_all.py"
+    repo_scorer = Path.cwd() / "score_all.py"
+    if repo_scorer.is_file():
+        scorer = repo_scorer
+    cmd = [sys.executable, str(scorer),
            "--gt", str(gt_dir), "--pred", str(out_dir)]
-    proc = subprocess.run(cmd, capture_output=True, text=True, cwd=str(APP))
+    # Run it from the current directory so that a relative --gt path resolves
+    # the same way it does on the host (the repo is mounted at /repo, the
+    # harness itself lives in /app).
+    proc = subprocess.run(cmd, capture_output=True, text=True, cwd=os.getcwd())
     if proc.returncode != 0:
         return {"error": "score_all.py failed",
                 "stderr": proc.stderr[-2000:], "stdout": proc.stdout[-2000:]}
@@ -362,8 +373,18 @@ def score_with_official_scorer(gt_dir: Path, out_dir: Path) -> dict:
             if line.upper().startswith(key):
                 payload.setdefault("raw", []).append(line)
     try:
-        import evaluate
-        import eval_qa
+        # Load the scorer's helpers from the same place we ran score_all.py
+        # from, so the numbers come from one consistent set of files.
+        import importlib.util
+
+        def _load(name: str):
+            path = scorer.parent / f"{name}.py"
+            spec = importlib.util.spec_from_file_location(name, path)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            return module
+
+        ev, qa = _load("evaluate"), _load("eval_qa")
 
         manifest = json.loads((gt_dir / "manifest.json").read_text(encoding="utf-8"))
         per_tier: dict[str, list[float]] = {}
@@ -371,15 +392,15 @@ def score_with_official_scorer(gt_dir: Path, out_dir: Path) -> dict:
         for e in manifest:
             tid = e["id"]
             gt_html = (gt_dir / tid / "gt" / "table.html").read_text(encoding="utf-8")
-            pred_html = evaluate.load_prediction(out_dir, tid)
+            pred_html = ev.load_prediction(out_dir, tid)
             per_tier.setdefault(e["tier"], []).append(
-                evaluate.teds(gt_html, pred_html) if pred_html else 0.0)
-            f1s.append(evaluate.cell_f1(gt_html, pred_html) if pred_html else 0.0)
-            grid = eval_qa.load_grid(out_dir, tid)
+                ev.teds(gt_html, pred_html) if pred_html else 0.0)
+            f1s.append(ev.cell_f1(gt_html, pred_html) if pred_html else 0.0)
+            grid = qa.load_grid(out_dir, tid)
             for q in json.loads((gt_dir / tid / "gt" / "qa.json").read_text(encoding="utf-8")):
-                qa_ok.append(eval_qa.grade_one(q, eval_qa.auto_answer(q, grid)))
+                qa_ok.append(qa.grade_one(q, qa.auto_answer(q, grid)))
         per_tier_mean = {t: sum(v) / len(v) for t, v in sorted(per_tier.items())}
-        teds_w = evaluate.tier_weighted(per_tier_mean)
+        teds_w = ev.tier_weighted(per_tier_mean)
         qa_acc = sum(qa_ok) / len(qa_ok) if qa_ok else 0.0
         payload.update({
             "tier_teds": {t: round(v, 4) for t, v in per_tier_mean.items()},

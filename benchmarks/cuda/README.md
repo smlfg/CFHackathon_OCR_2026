@@ -27,12 +27,39 @@ docker buildx build --platform linux/amd64 \
 ./benchmarks/cuda/run.sh --gt data/dev --out out/cuda_dev
 ```
 
-If you build on the Mac and run on the laptop, ship the image:
+### Option A: build on the laptop (recommended)
+
+Native amd64, no emulation, fastest build. Needs network for the pip wheels
+and the two model weight sets — ~4 GB, of which ~2.5 GB is the torch CUDA wheel.
+
+### Option B: build on the Mac, ship the image
+
+The image is already built and verified here, so this saves the laptop the
+download entirely:
 
 ```bash
+# on the Mac
 docker save tablesalt-tatr-cuda:amd64 | gzip > tablesalt-tatr-cuda-amd64.tar.gz
-# ...copy to laptop...
+scp tablesalt-tatr-cuda-amd64.tar.gz <laptop>:
+
+# on the laptop
 gunzip -c tablesalt-tatr-cuda-amd64.tar.gz | docker load
+docker images | grep tablesalt-tatr-cuda     # must be listed
+
+./benchmarks/cuda/run.sh --gt data/dev --out out/cuda_dev
+```
+
+The image is 5.5 GB (2.9 GB compressed) — mostly the CUDA runtime and the torch
+wheels. It is `linux/amd64`, which is what the laptop needs.
+
+### Option C: from the repo, no image transfer
+
+If the laptop has the repo checked out and network access, `run.sh --build`
+does everything:
+
+```bash
+git pull
+./benchmarks/cuda/run.sh --build --gt data/dev --out out/cuda_dev
 ```
 
 ---
@@ -60,9 +87,26 @@ GPU number for stage 1 does not automatically mean a fast table.
 |---|---|
 | `<out>/<table_id>.json` | cells in the official TableSalt format (`text, r, c, rs, cs`) |
 | `<out>/_report.json` | per-table timings, detected vs. ground-truth shape |
-| `<out>/_bench.json` | summary: throughput, stage split, GPU info, score |
+| `<out>/_bench.json` | summary: throughput, stage split, GPU info, Tesseract version, score |
 
 `run.sh` also writes `<out>_cpu/` and prints the side-by-side comparison.
+
+### Mount layout
+
+`run.sh` mounts the repo at **`/repo`**, not at `/app`. `/app` belongs to the
+image (harness + baked weights), and mounting over it would hide both. The
+paths inside the container are therefore the same relative paths as on the
+host, and the results land in `<out>/` — not nested twice.
+
+```
+docker run --rm --gpus all --network none \
+  -v "$PWD:/repo" -w /repo \
+  tablesalt-tatr-cuda:amd64 --gt data/dev --out out/cuda_dev
+```
+
+The scorer runs from the mounted repo, so the numbers come from the repo's
+`score_all.py` / `evaluate.py` / `eval_qa.py` — not from an older copy in the
+image.
 
 ---
 
@@ -98,6 +142,20 @@ the correctness check for this harness.
 | **total** | **1.432** | |
 
 s/table 1.43 (p50 1.40, p90 2.32), shape exactly right 23/24.
+
+### Verified in the container (CPU path, `tablesalt-tatr-cuda:amd64`)
+
+Full dev run inside the image, offline (`--network none`), Ubuntu 24.04 +
+Tesseract **5.3.4**:
+
+| | T0 | T1 | T2 | T3 | QA | **FINAL** |
+|---|---|---|---|---|---|---|
+| container (Tess 5.3.4) | 0.898 | 0.868 | 0.752 | 0.648 | 0.508 | **0.7124** |
+| Mac host (Tess 5.5.3) | 0.899 | 0.867 | 0.764 | 0.682 | 0.508 | **0.7268** |
+
+The gap is the Tesseract version (T3: 0.648 vs 0.682), not the container. The
+image runs the pipeline correctly; s/table is ~3.8 there only because amd64 is
+emulated on an arm64 Mac.
 
 ### What this predicts for CUDA
 
