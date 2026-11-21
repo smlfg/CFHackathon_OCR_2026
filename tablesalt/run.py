@@ -21,7 +21,7 @@ from pathlib import Path
 
 os.environ.setdefault("OMP_THREAD_LIMIT", "1")
 
-from . import ocr, postprocess, preprocess, spans, structure, validate  # noqa: E402
+from . import ocr, postprocess, preprocess, selfcheck, spans, structure, validate  # noqa: E402
 from .config import CFG, Config  # noqa: E402
 from .io_utils import list_images, load_gray, write_json_atomic  # noqa: E402
 
@@ -104,13 +104,59 @@ def baseline_cells(img_path: Path) -> list[dict]:
 # batch
 # ----------------------------------------------------------------------------
 
+# second opinion: only tables the self-check flags are read again, on the CPU, with
+# other settings; the read with fewer problems wins.  Costs nothing for clean tables.
+SECOND_OPINIONS = [               # layout settings; tuned on fresh tables, never on dev
+    dict(row_split=0.7),          # looser rows: keeps a two-row header together
+    dict(edge_support=0.5),       # stricter column edges: splits headers like "Q1 Q2"
+    dict(blob_join_x=1.1),
+    dict(ocr_cap_height=48, second_pass=True),
+]
+
+
+def predict_checked(img_path: Path, cfg: Config = CFG, info: dict | None = None) -> list[dict]:
+    info = info if info is not None else {}
+    t0 = time.perf_counter()
+    best, err = None, None
+    try:
+        best = predict(img_path, cfg, info)
+    except Exception as e:                      # noqa: BLE001
+        err = e
+    probs = selfcheck.check(best) if best is not None else ["failed"]
+    info["check"] = probs[:3]
+    if not probs or os.environ.get("TABLESALT_SECOND_OPINION", "1") == "0":
+        if best is None:
+            raise err
+        return best
+    one = time.perf_counter() - t0            # what one read costs on this machine right now
+    deadline = float(os.environ.get("TABLESALT_DEADLINE_S", "12"))   # hard limit is 15 s
+    for k, alt in enumerate(SECOND_OPINIONS):
+        if time.perf_counter() - t0 + 1.3 * one > deadline:
+            info["second_opinion_skipped"] = len(SECOND_OPINIONS) - k
+            break
+        try:
+            cand = predict(img_path, replace(cfg, **alt), {})
+        except Exception:                       # noqa: BLE001
+            continue
+        p2 = selfcheck.check(cand)
+        if len(p2) < len(probs):
+            best, probs = cand, p2
+            info["second_opinion"] = k
+        if not probs:
+            break
+    info["check_after"] = probs[:3]
+    if best is None:
+        raise err
+    return best
+
+
 def process_one(args: tuple[str, str, bool]) -> dict:
     img, out_dir, verbose = args
     img_path, out_dir = Path(img), Path(out_dir)
     t = time.perf_counter()
     info: dict = {"id": img_path.stem}
     try:
-        cells = predict(img_path, CFG, info)
+        cells = predict_checked(img_path, CFG, info)
         info["mode"] = "pipeline"
     except Exception as e:                      # noqa: BLE001 - never let one table kill the run
         info["error"] = f"{type(e).__name__}: {e}"
@@ -122,6 +168,9 @@ def process_one(args: tuple[str, str, bool]) -> dict:
         except Exception as e2:                 # noqa: BLE001
             info["error"] += f" | baseline: {type(e2).__name__}: {e2}"
             cells, info["mode"] = [], "empty"
+    if ocr.TESS_ERRORS:
+        info["tesseract_errors"] = len(ocr.TESS_ERRORS)
+        ocr.TESS_ERRORS.clear()
     write_json_atomic(out_dir / f"{img_path.stem}.json", cells)
     info["seconds"] = round(time.perf_counter() - t, 3)
     return info
@@ -146,7 +195,9 @@ def main(images_dir, out_dir, workers: int | None = None, verbose: bool = False,
     total = time.perf_counter() - t0
     n_fb = sum(1 for i in infos if i.get("mode") != "pipeline")
     print(f"{len(infos)} tables in {total:.1f}s ({total / max(1, len(infos)):.2f}s/table wall, "
-          f"{workers} workers), fallbacks: {n_fb}", flush=True)
+          f"{workers} workers), fallbacks: {n_fb}, flagged: {sum(1 for i in infos if i.get('check'))}, "
+          f"fixed by 2nd read: {sum(1 for i in infos if i.get('check') and not i.get('check_after'))}, "
+          f"tesseract errors: {sum(i.get('tesseract_errors', 0) for i in infos)}", flush=True)
     if log:
         Path(log).write_text(json.dumps(sorted(infos, key=lambda i: i["id"]), indent=1),
                              encoding="utf-8")
