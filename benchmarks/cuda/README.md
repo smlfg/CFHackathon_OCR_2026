@@ -49,8 +49,13 @@ docker images | grep tablesalt-tatr-cuda     # must be listed
 ./benchmarks/cuda/run.sh --gt data/dev --out out/cuda_dev
 ```
 
-The image is 5.5 GB (2.9 GB compressed) — mostly the CUDA runtime and the torch
-wheels. It is `linux/amd64`, which is what the laptop needs.
+The image is **5.7 GB** and barely compresses (the torch CUDA wheels are already
+compressed), so `gzip` saves almost nothing — a plain `docker save` over a USB
+stick or LAN is the practical way to move it. It is `linux/amd64`, which is what
+the laptop needs.
+
+Option A (build on the laptop) avoids the transfer entirely and is ~4 GB of
+downloads, of which ~2.5 GB is the torch CUDA wheel.
 
 ### Option C: from the repo, no image transfer
 
