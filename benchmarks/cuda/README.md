@@ -126,10 +126,31 @@ The official submission run is offline. The image therefore:
 - sets `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1` **after** the weights are
   baked (offline mode during the build would block the download itself)
 
-The build ends with a real model load (`from_pretrained(..., local_files_only=True)`),
-so a missing dependency or a broken checkpoint fails the **build**, not the benchmark.
+The build ends with two preflight checks, so a broken image fails the **build**
+instead of the benchmark run:
+
+1. **Tesseract can read text.** A Tesseract without loadable language data
+   returns an empty string for every crop — no error, just zeros. That is
+   exactly what happened with a wrong `TESSDATA_PREFIX`: FINAL 0.16 instead of
+   0.73, with a perfectly clean run log. The build now renders
+   `"Total 1.234 EUR"` and asserts the digits come back.
+2. **TATR loads offline.** `from_pretrained(..., local_files_only=True)` proves
+   both weight sets are baked in: the detector *and* the timm ResNet-18
+   backbone (timm fetches it from the Hub at construction time — easy to miss).
 
 `run.sh` passes `--network none` to prove the run needs no network.
+
+## Two things that silently ruin the numbers
+
+Both were hit during development; both are now guarded.
+
+| Trap | Symptom | Guard |
+|---|---|---|
+| `TESSDATA_PREFIX` points at a directory that does not exist | every cell empty, FINAL 0.16 | build-time OCR self-test + runtime check in the harness |
+| Tesseract 4 vs 5 | OCR output differs → numbers not comparable with `MEASUREMENTS.md` | Ubuntu 24.04 base (Tesseract 5.3.x); the harness prints the version it used |
+
+The harness prints the Tesseract version it ran with, so a row in
+`challenge/MEASUREMENTS.md` always says which OCR produced it.
 
 ---
 

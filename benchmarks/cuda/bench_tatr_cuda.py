@@ -140,6 +140,30 @@ def run_table(img: Image.Image, model, device: str, workers: int) -> tuple[list[
     return filled, t
 
 
+def check_ocr_environment() -> dict:
+    """Prove Tesseract can actually read text before we benchmark it.
+
+    A Tesseract without loadable language data returns an empty string for
+    every crop — no error, just zeros. That cost us one full benchmark run
+    (FINAL 0.16 instead of 0.73), so it gets checked up front.
+    """
+    import pytesseract
+    from PIL import Image, ImageDraw
+
+    image = Image.new("RGB", (400, 80), "white")
+    ImageDraw.Draw(image).text((10, 25), "Total 1.234 EUR", fill="black")
+    text = pytesseract.image_to_string(image, lang="deu+eng",
+                                        config="--psm 7").strip()
+    if "1.234" not in text:
+        raise SystemExit(
+            f"Tesseract cannot read text: got {text!r}\n"
+            "TESSDATA_PREFIX is probably wrong, or the language data is missing.\n"
+            "Check: docker run --rm --entrypoint sh <image> -c 'tesseract --list-langs'"
+        )
+    version = pytesseract.get_tesseract_version()
+    return {"tesseract_version": str(version), "ocr_selftest": text}
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--gt", default="data/dev",
@@ -199,6 +223,10 @@ def main() -> int:
     load_seconds = time.perf_counter() - load_t0
     print(f"model loaded in {load_seconds:.2f}s\n", flush=True)
 
+    ocr_env = check_ocr_environment()
+    print(f"ocr         {ocr_env['tesseract_version']}  "
+          f"(self-test: {ocr_env['ocr_selftest']!r})\n", flush=True)
+
     rows: list[dict] = []
     for rep in range(args.repeat):
         rows = []
@@ -239,6 +267,7 @@ def main() -> int:
     wall_total = sum(stage("total"))
     summary = {
         "gpu_info": gpu_info(device),
+        "ocr_env": ocr_env,
         "dataset": str(gt_dir),
         "n_tables": len(rows),
         "model_load_seconds": round(load_seconds, 2),
@@ -286,6 +315,7 @@ def main() -> int:
     print(f"  device            {device}"
           + (f"  ({summary['gpu_info'].get('gpu_name', '?')})"
              if summary["gpu_info"].get("gpu_name") else ""))
+    print(f"  tesseract         {ocr_env['tesseract_version']}")
     print(f"  model load        {load_seconds:.2f}s")
     print(f"  wall total        {wall_total:.1f}s  for {len(rows)} tables")
     print(f"  s/table           mean {summary['throughput']['s_per_table_mean']:.3f}  "
