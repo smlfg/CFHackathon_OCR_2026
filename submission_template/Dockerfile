@@ -1,10 +1,19 @@
 # Submission contract: the container must run
 #   <entrypoint> /data/images /data/predictions
-# offline (no network). Bundle all model weights in the image.
+# offline (no network). Build with the repository root as context:
+#   docker build -t my-tablesalt -f submission_template/Dockerfile .
+#
+# Pipeline: tablesalt/ (OpenCV structure + Tesseract cell OCR), fallback baselines/.
 FROM python:3.12-slim
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    tesseract-ocr && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir pytesseract pillow numpy
-COPY . /app
+    tesseract-ocr tesseract-ocr-eng tesseract-ocr-deu && rm -rf /var/lib/apt/lists/*
+COPY submission_template/requirements.txt /tmp/requirements.txt
+RUN pip install --no-cache-dir -r /tmp/requirements.txt
 WORKDIR /app
+COPY tablesalt/ /app/tablesalt/
+COPY baselines/ /app/baselines/
+COPY submission_template/ /app/submission_template/
+# one Tesseract thread per process; parallelism comes from one worker per table
+ENV OMP_THREAD_LIMIT=1 \
+    PYTHONUNBUFFERED=1
 ENTRYPOINT ["python", "submission_template/predict.py", "/data/images", "/data/predictions"]

@@ -4,32 +4,29 @@ Submission entrypoint contract:
     python predict.py <input_dir> <output_dir>
 
 <input_dir>  contains one image per table, named <table_id>.png or .jpg
-<output_dir> must receive one <table_id>.json (preferred) or .html each
+<output_dir> receives one <table_id>.json per image, written as soon as it is done
 
-This template is a WORKING example: it runs the Tesseract floor baseline.
-Replace its internals with your pipeline; keep the entrypoint identical.
-The official run happens offline (no network), so bundle all weights.
+Runs the tablesalt pipeline (tablesalt/run.py); per table it falls back to the Tesseract
+floor baseline and at worst to an empty cell list, so every image gets a valid file.
 """
+import os
 import sys
-import importlib.util
 from pathlib import Path
 
-HERE = Path(__file__).resolve().parent
-spec = importlib.util.spec_from_file_location(
-    "bt", HERE.parent / "baselines" / "baseline_tesseract.py")
-bt = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(bt)
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+from tablesalt.run import main  # noqa: E402
 
 
-def main(inp, out):
-    inp, out = Path(inp), Path(out)
-    out.mkdir(parents=True, exist_ok=True)
-    for img in sorted(inp.iterdir()):
-        if img.suffix.lower() not in (".png", ".jpg", ".jpeg"):
-            continue
-        (out / f"{img.stem}.html").write_text(bt.to_html(img), encoding="utf-8")
-        print(img.stem, "done", flush=True)
+def available_cpus() -> int:
+    try:
+        return len(os.sched_getaffinity(0))
+    except AttributeError:          # Windows / macOS
+        return os.cpu_count() or 1
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    if len(sys.argv) != 3:
+        raise SystemExit(__doc__)
+    main(sys.argv[1], sys.argv[2], workers=available_cpus())

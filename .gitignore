@@ -27,3 +27,8 @@ ocrbench_v2/
 raw/
 predictions/
 metrics/
+
+# tablesalt measurement outputs
+out_eval/
+*.log.json
+.pytest_cache/

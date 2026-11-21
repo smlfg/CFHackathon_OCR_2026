@@ -1,0 +1,6 @@
+# Runtime dependencies of the tablesalt pipeline inside the submission container (pinned).
+numpy==2.5.5
+opencv-python-headless==5.1.0.95
+pillow==13.0.0
+pytesseract==0.3.13
+rapidfuzz==3.14.6

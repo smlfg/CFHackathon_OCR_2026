@@ -2,3 +2,8 @@ pillow>=10.0
 numpy>=1.26
 apted>=1.0.3
 lxml>=5.0
+# tablesalt pipeline (container pins: submission_template/requirements.txt)
+opencv-python-headless>=4.8
+pytesseract>=0.3.10
+rapidfuzz>=3.0
+pytest>=8.0
