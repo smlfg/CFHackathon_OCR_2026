@@ -1,4 +1,5 @@
 """Small data containers passed between the pipeline steps."""
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -9,14 +10,15 @@ import numpy as np
 @dataclass
 class Blob:
     """One connected text region in the rectified image, normally one cell's text."""
+
     x0: int
     y0: int
-    x1: int          # exclusive
-    y1: int          # exclusive
-    ink: int         # number of ink pixels
+    x1: int  # exclusive
+    y1: int  # exclusive
+    ink: int  # number of ink pixels
     text: str = ""
     conf: float = -1.0
-    lead_dash: bool = False   # left-most glyph is a flat mid-height bar (minus sign)
+    lead_dash: bool = False  # left-most glyph is a flat mid-height bar (minus sign)
 
     @property
     def cx(self) -> float:
@@ -38,17 +40,19 @@ class Blob:
 @dataclass
 class Prepared:
     """Output of preprocess: rectified grayscale + binary ink mask."""
-    gray: np.ndarray            # uint8, illumination-normalized, rectified
-    binary: np.ndarray          # uint8 0/255, 255 = ink, rectified, despeckled
-    angle: float = 0.0          # deskew angle applied (deg)
-    homography: bool = False    # True if a perspective correction was applied
+
+    gray: np.ndarray  # uint8, illumination-normalized, rectified
+    binary: np.ndarray  # uint8 0/255, 255 = ink, rectified, despeckled
+    angle: float = 0.0  # deskew angle applied (deg)
+    homography: bool = False  # True if a perspective correction was applied
 
 
 @dataclass
 class Grid:
     """Logical grid in rectified pixel coordinates."""
-    row_bounds: list[float]     # len n_rows + 1
-    col_bounds: list[float]     # len n_cols + 1
+
+    row_bounds: list[float]  # len n_rows + 1
+    col_bounds: list[float]  # len n_cols + 1
     row_centers: list[float]
 
     @property
@@ -63,18 +67,21 @@ class Grid:
 @dataclass
 class Layout:
     """Everything structure.py found: blobs grouped into rows, plus the grid."""
-    h: float                                    # median text height (px)
+
+    h: float  # median text height (px)
     blobs: list[Blob]
-    rows: list[list[int]]                       # blob indices per text row, top to bottom
+    rows: list[list[int]]  # blob indices per text row, top to bottom
     grid: Grid
     hline_mask: np.ndarray
     vline_mask: np.ndarray
-    stub_row: int | None = None                 # index into rows of a mid-way rs=2 stub
+    stub_row: int | None = None  # index into rows of a mid-way rs=2 stub
     extra: dict = field(default_factory=dict)
 
 
 @dataclass
 class Cell:
+    """One logical table cell with its position, spans and source blobs."""
+
     text: str
     r: int
     c: int
@@ -82,7 +89,7 @@ class Cell:
     cs: int = 1
     blobs: list[int] = field(default_factory=list)
     header: bool = False
-    neg_hint: bool = False    # geometry saw a leading minus
+    neg_hint: bool = False  # geometry saw a leading minus
 
     def to_json(self) -> dict:
         return {"text": self.text, "r": self.r, "c": self.c, "rs": self.rs, "cs": self.cs}

@@ -3,6 +3,7 @@
 Idempotent per run key (model, dataset, prompt hash, git sha), so re-running a
 model updates its row instead of piling up duplicates.
 """
+
 from __future__ import annotations
 
 import json
@@ -59,8 +60,13 @@ CREATE INDEX IF NOT EXISTS runs_model ON runs(model_id, dataset);
 
 def git_sha() -> str:
     try:
-        return subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=config.ROOT,
-                              capture_output=True, text=True, check=True).stdout.strip()
+        return subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=config.ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
     except Exception:
         return "unknown"
 
@@ -101,8 +107,19 @@ def save(run: dict, tables: list[dict]) -> str:
         con.executemany(
             "INSERT INTO tables (run_id, tid, tier, style, teds, cell_f1, qa, empty)"
             " VALUES (?,?,?,?,?,?,?,?)",
-            [(rid, t["tid"], t["tier"], t["style"], t["teds"], t["cell_f1"], t["qa"],
-              int(t["empty"])) for t in tables],
+            [
+                (
+                    rid,
+                    t["tid"],
+                    t["tier"],
+                    t["style"],
+                    t["teds"],
+                    t["cell_f1"],
+                    t["qa"],
+                    int(t["empty"]),
+                )
+                for t in tables
+            ],
         )
     con.close()
 
@@ -134,15 +151,18 @@ def runs(dataset: str | None = None, latest_only: bool = True) -> list[dict]:
 
 def table_rows(rid: str) -> list[dict]:
     con = connect()
-    rows = [dict(r) for r in con.execute(
-        "SELECT * FROM tables WHERE run_id = ? ORDER BY teds ASC", (rid,))]
+    rows = [
+        dict(r)
+        for r in con.execute("SELECT * FROM tables WHERE run_id = ? ORDER BY teds ASC", (rid,))
+    ]
     con.close()
     return rows
 
 
 def has(model_id: str, dataset: str, prompt_hash: str) -> bool:
     con = connect()
-    hit = con.execute("SELECT 1 FROM runs WHERE run_id = ?",
-                      (run_id({"id": model_id}, dataset, prompt_hash),)).fetchone()
+    hit = con.execute(
+        "SELECT 1 FROM runs WHERE run_id = ?", (run_id({"id": model_id}, dataset, prompt_hash),)
+    ).fetchone()
     con.close()
     return hit is not None

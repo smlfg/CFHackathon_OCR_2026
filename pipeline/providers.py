@@ -5,6 +5,7 @@
 
 Both are addressed over HTTP, so the container never needs a GPU or model weights.
 """
+
 from __future__ import annotations
 
 import base64
@@ -58,19 +59,26 @@ class MlxProvider:
                 "python scripts/mlx_server.py --port 8099"
             ) from exc
 
-    def generate(self, image_png: bytes, prompt: str, *, max_tokens: int = 4096,
-                 temperature: float = 0.0) -> tuple[str, dict]:
+    def generate(
+        self, image_png: bytes, prompt: str, *, max_tokens: int = 4096, temperature: float = 0.0
+    ) -> tuple[str, dict]:
         payload = {
             "model": "current",
-            "messages": [{
-                "role": "user",
-                "content": [
-                    {"type": "text", "text": prompt},
-                    {"type": "image_url",
-                     "image_url": {"url": "data:image/png;base64,"
-                                          + base64.b64encode(image_png).decode()}},
-                ],
-            }],
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": prompt},
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": "data:image/png;base64,"
+                                + base64.b64encode(image_png).decode()
+                            },
+                        },
+                    ],
+                }
+            ],
             "max_tokens": max_tokens,
             "temperature": temperature,
         }
@@ -85,8 +93,9 @@ class MlxProvider:
         return text, usage
 
     def prune(self, repo: str, delete_weights: bool = True) -> dict:
-        return _post(f"{self.base_url}/prune",
-                     {"repo": repo, "delete_weights": delete_weights}, timeout=120)
+        return _post(
+            f"{self.base_url}/prune", {"repo": repo, "delete_weights": delete_weights}, timeout=120
+        )
 
 
 class OllamaProvider:
@@ -117,12 +126,18 @@ class OllamaProvider:
             raise ProviderError(f"ollama pull {repo} failed: {exc}") from exc
         return {"loaded": repo, "pulled": True, "seconds": round(time.time() - started, 1)}
 
-    def generate(self, image_png: bytes, prompt: str, *, max_tokens: int = 4096,
-                 temperature: float = 0.0) -> tuple[str, dict]:
+    def generate(
+        self, image_png: bytes, prompt: str, *, max_tokens: int = 4096, temperature: float = 0.0
+    ) -> tuple[str, dict]:
         payload = {
             "model": self._model,
-            "messages": [{"role": "user", "content": prompt,
-                          "images": [base64.b64encode(image_png).decode()]}],
+            "messages": [
+                {
+                    "role": "user",
+                    "content": prompt,
+                    "images": [base64.b64encode(image_png).decode()],
+                }
+            ],
             "stream": False,
             "options": {"temperature": temperature, "num_predict": max_tokens},
         }

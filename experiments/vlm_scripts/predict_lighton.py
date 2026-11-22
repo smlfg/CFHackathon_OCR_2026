@@ -3,7 +3,7 @@
 
 Same contract as the submission (§7), so it can be tested exactly like the container:
 
-    python predict_lighton.py /path/to/images /path/to/predictions
+    python experiments/vlm_scripts/predict_lighton.py /path/to/images /path/to/predictions
 
 For every `<table_id>.png|.jpg` in the input directory it writes
 `<table_id>.json` with the schema from README §5. Each file is written as soon as
@@ -12,6 +12,7 @@ the table is done, so a timeout keeps everything finished so far.
 The OCR model runs through MLX (Apple silicon); the container needs a CUDA/CPU
 runtime of the same weights instead - see the README section on shipping.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -42,8 +43,11 @@ def main() -> None:
     images = Path(args.images)
     out = Path(args.predictions)
     out.mkdir(parents=True, exist_ok=True)
-    files = sorted(p for p in images.iterdir()
-                   if p.suffix.lower() in IMAGE_SUFFIXES and not p.name.startswith("."))
+    files = sorted(
+        p
+        for p in images.iterdir()
+        if p.suffix.lower() in IMAGE_SUFFIXES and not p.name.startswith(".")
+    )
     if not files:
         raise SystemExit(f"no images in {images}")
 
@@ -61,10 +65,15 @@ def main() -> None:
         if target.exists():
             continue
         started = time.time()
-        result = generate(model, processor, formatted,
-                          page(image_path, longest_edge),
-                          max_tokens=args.max_tokens, temperature=temperature,
-                          verbose=False)
+        result = generate(
+            model,
+            processor,
+            formatted,
+            page(image_path, longest_edge),
+            max_tokens=args.max_tokens,
+            temperature=temperature,
+            verbose=False,
+        )
         text = getattr(result, "text", None) or str(result)
         cells = text_to_cells(text)
         note = ""
@@ -75,8 +84,10 @@ def main() -> None:
             if problems:
                 note = f"  {len(problems)} warning(s): {problems[0]}"
         target.write_text(json.dumps(cells, ensure_ascii=False))
-        print(f"{image_path.name:<16} {len(cells):3d} cells "
-              f"{time.time() - started:5.1f}s{note}", flush=True)
+        print(
+            f"{image_path.name:<16} {len(cells):3d} cells {time.time() - started:5.1f}s{note}",
+            flush=True,
+        )
 
     print(f"\n{len(files)} images, {time.time() - started_all:.1f}s -> {out}")
 

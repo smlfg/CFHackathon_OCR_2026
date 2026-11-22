@@ -14,9 +14,9 @@ like the official scorer normalises it (`evaluate.norm_text`), so a JSON file sc
 identically to the equivalent HTML.
 
 Usage
-    python lighton_cells.py --raw raw/lighton --out pred_lighton_json
-    python lighton_cells.py --raw raw/lighton --out pred_lighton_json --check
-    python lighton_cells.py --text raw/lighton/table_000.txt      # one table to stdout
+    python experiments/vlm_scripts/lighton_cells.py --raw raw/lighton --out pred_lighton_json
+    python experiments/vlm_scripts/lighton_cells.py --raw raw/lighton --out pred_lighton_json --check
+    python experiments/vlm_scripts/lighton_cells.py --text raw/lighton/table_000.txt      # one table to stdout
 
 `--check` reports schema violations, overlaps, interior grid holes and ragged edges;
 the dev run is clean except `table_014`, where the model writes a six-label header over
@@ -25,6 +25,7 @@ that phantom column cost final score (0.9184 -> 0.9149) instead of gaining: TEDS
 each extra cell as an insertion, and the missing text is still missing - see the notes
 in `fill_holes`.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -57,7 +58,7 @@ def table_region(text: str) -> str | None:
     low = text.lower()
     start, end = low.find("<table"), low.rfind("</table>")
     if start >= 0 and end > start:
-        return text[start:end + len("</table>")]
+        return text[start : end + len("</table>")]
     return None
 
 
@@ -77,14 +78,14 @@ def html_table_to_cells(html_str: str) -> list[dict]:
     for r, tr in enumerate(tables[0].xpath(".//tr")):
         c = 0
         for node in tr.xpath("./td|./th"):
-            while (r, c) in occupied:          # skip slots taken by a span above
+            while (r, c) in occupied:  # skip slots taken by a span above
                 c += 1
             rs, cs = span(node.get("rowspan", 1)), span(node.get("colspan", 1))
-            while any((r + dr, c + dc) in occupied
-                      for dr in range(rs) for dc in range(cs)) and cs > 1:
-                cs -= 1                        # a span may not overlap another cell
-            cell = {"text": norm_text("".join(node.itertext())),
-                    "r": r, "c": c, "rs": rs, "cs": cs}
+            while (
+                any((r + dr, c + dc) in occupied for dr in range(rs) for dc in range(cs)) and cs > 1
+            ):
+                cs -= 1  # a span may not overlap another cell
+            cell = {"text": norm_text("".join(node.itertext())), "r": r, "c": c, "rs": rs, "cs": cs}
             for dr in range(rs):
                 for dc in range(cs):
                     occupied[(r + dr, c + dc)] = cell
@@ -102,8 +103,9 @@ def pipe_to_cells(text: str) -> list[dict]:
             continue
         fields = line.strip().strip("|").split("|")
         for c, field in enumerate(fields):
-            cells.append({"text": norm_text(htmllib.unescape(field)),
-                          "r": r, "c": c, "rs": 1, "cs": 1})
+            cells.append(
+                {"text": norm_text(htmllib.unescape(field)), "r": r, "c": c, "rs": 1, "cs": 1}
+            )
         r += 1
     return cells
 
@@ -197,8 +199,7 @@ def fill_holes(cells: list[dict]) -> tuple[list[dict], int]:
     return filled, added
 
 
-def write_predictions(raw_dir: Path, out_dir: Path, check: bool = False,
-                      fill: bool = False) -> int:
+def write_predictions(raw_dir: Path, out_dir: Path, check: bool = False, fill: bool = False) -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     written, flagged = 0, 0
     for path in sorted(raw_dir.glob("*.txt")):
@@ -216,8 +217,7 @@ def write_predictions(raw_dir: Path, out_dir: Path, check: bool = False,
             problems = check_cells(cells)
             holes = [p for p in problems if "grid hole" in p]
             ragged = [p for p in problems if "ragged edge" in p]
-            hard = [p for p in problems if "grid hole" not in p
-                    and "ragged edge" not in p]
+            hard = [p for p in problems if "grid hole" not in p and "ragged edge" not in p]
             if hard or holes:
                 flagged += 1
                 bits = []
@@ -227,12 +227,16 @@ def write_predictions(raw_dir: Path, out_dir: Path, check: bool = False,
                     bits.append(f"{len(holes)} interior holes")
                 print(f"{path.stem}: {len(cells)} cells, " + ", ".join(bits))
             elif ragged:
-                print(f"{path.stem}: {len(cells)} cells, ragged edges "
-                      f"({len(ragged)} slots, left alone)")
+                print(
+                    f"{path.stem}: {len(cells)} cells, ragged edges "
+                    f"({len(ragged)} slots, left alone)"
+                )
             elif added:
                 print(f"{path.stem}: {len(cells)} cells ({added} empty cells added)")
-    print(f"{written} JSON predictions -> {out_dir}"
-          f"{f', {flagged} with warnings' if check and flagged else ''}")
+    print(
+        f"{written} JSON predictions -> {out_dir}"
+        f"{f', {flagged} with warnings' if check and flagged else ''}"
+    )
     return written
 
 
@@ -241,10 +245,12 @@ def main() -> None:
     ap.add_argument("--raw", help="directory with <table_id>.txt model output")
     ap.add_argument("--out", help="directory for <table_id>.json")
     ap.add_argument("--text", help="convert a single text file to stdout")
-    ap.add_argument("--check", action="store_true",
-                    help="validate every file against the schema and the grid")
-    ap.add_argument("--fill", action="store_true",
-                    help="write an empty cell for every uncovered grid slot")
+    ap.add_argument(
+        "--check", action="store_true", help="validate every file against the schema and the grid"
+    )
+    ap.add_argument(
+        "--fill", action="store_true", help="write an empty cell for every uncovered grid slot"
+    )
     args = ap.parse_args()
 
     if args.text:
@@ -254,8 +260,7 @@ def main() -> None:
         print(json.dumps(cells, ensure_ascii=False, indent=1))
         problems = check_cells(cells)
         if problems:
-            print(f"\n# {len(problems)} problem(s): " + "; ".join(problems[:5]),
-                  flush=True)
+            print(f"\n# {len(problems)} problem(s): " + "; ".join(problems[:5]), flush=True)
         return
     if not (args.raw and args.out):
         ap.error("pass --raw and --out, or --text")

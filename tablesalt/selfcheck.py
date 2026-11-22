@@ -14,6 +14,7 @@ Rules checked
   empties    not more empty data cells than the generator plausibly makes
   grid       every position covered exactly once (validate.check)
 """
+
 from __future__ import annotations
 
 import re
@@ -36,18 +37,19 @@ def _num_style(t: str):
             m = re.fullmatch(pat + UNIT_RE, t)
             if m:
                 if style.startswith("int") and not re.search(r"\d[ ,]\d", t):
-                    style = "int"          # no separator visible: fits both integer styles
+                    style = "int"  # no separator visible: fits both integer styles
                 return style, neg, m.group(1) or ""
     return None
 
 
 def check(cells: list[dict], max_empty_share: float = 0.15) -> list[str]:
+    """List plausibility problems for a table (empty means it looks right)."""
     problems: list[str] = []
     if not cells:
         return ["no cells"]
     try:
         problems += [f"grid: {p}" for p in validate.check(cells)][:3]
-    except Exception as ex:               # never let the checker crash the run
+    except Exception as ex:  # never let the checker crash the run
         problems.append(f"grid: {ex!r}")
     at = {(c["r"], c["c"]): c for c in cells}
     n_cols = max(c["c"] + c.get("cs", 1) for c in cells)
@@ -59,17 +61,21 @@ def check(cells: list[dict], max_empty_share: float = 0.15) -> list[str]:
         problems.append(f"header: {heads} is no known sequence")
     if hr == 2:
         stub = at.get((0, 0), {}).get("text", "")
-        if stub not in lexicon.STUB_NAMES + [""]:
+        if stub not in [*lexicon.STUB_NAMES, ""]:
             problems.append(f"groups: corner label {stub!r} unknown")
         for c in cells:
             if c["r"] == 0 and c["c"] > 0 and c["text"] not in lexicon.GROUP_NAMES:
                 problems.append(f"groups: {c['text']!r} unknown")
-    elif at.get((0, 0), {}).get("text", "") not in lexicon.STUB_NAMES + [""]:
+    elif at.get((0, 0), {}).get("text", "") not in [*lexicon.STUB_NAMES, ""]:
         problems.append(f"groups: corner label {at[(0, 0)]['text']!r} unknown")
 
     # row labels
-    labels = [c["text"] for c in sorted(cells, key=lambda c: c["r"]) if c["c"] == 0 and c["r"] >= hr]
-    if not any(set(labels) <= set(pool) for pool in lexicon.ROW_POOLS) or len(set(labels)) != len(labels):
+    labels = [
+        c["text"] for c in sorted(cells, key=lambda c: c["r"]) if c["c"] == 0 and c["r"] >= hr
+    ]
+    if not any(set(labels) <= set(pool) for pool in lexicon.ROW_POOLS) or len(set(labels)) != len(
+        labels
+    ):
         problems.append("labels: not one topic list, or repeated")
 
     # numbers / specials
@@ -92,7 +98,8 @@ def check(cells: list[dict], max_empty_share: float = 0.15) -> list[str]:
         if s is None:
             bad.append(t)
             continue
-        styles.add(s[0]); units.add(s[2])
+        styles.add(s[0])
+        units.add(s[2])
         if s[1] != "none":
             negs.add(s[1])
     kinds = styles - {"int"}

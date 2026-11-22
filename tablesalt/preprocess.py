@@ -9,6 +9,7 @@
    last text row.  Their four intersections give a homography to a rectangle - for all three
    styles, with or without rules.
 """
+
 from __future__ import annotations
 
 import cv2
@@ -22,6 +23,7 @@ WHITE = 255
 
 
 def normalize_illumination(gray: np.ndarray, cfg: Config = CFG) -> np.ndarray:
+    """Divide out the estimated background so shadows and fills fade."""
     k = cv2.getStructuringElement(cv2.MORPH_RECT, (cfg.bg_kernel, cfg.bg_kernel))
     bg = cv2.morphologyEx(gray, cv2.MORPH_CLOSE, k)
     bg = cv2.blur(bg, (cfg.bg_kernel, cfg.bg_kernel))
@@ -31,6 +33,7 @@ def normalize_illumination(gray: np.ndarray, cfg: Config = CFG) -> np.ndarray:
 
 
 def binarize(norm: np.ndarray, cfg: Config = CFG) -> np.ndarray:
+    """Otsu-threshold a normalized image (clamped) into a despeckled ink mask."""
     blur = cv2.GaussianBlur(norm, (3, 3), 0)
     t, _ = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     t = float(np.clip(t, cfg.bin_thresh_min, cfg.bin_thresh_max))
@@ -39,7 +42,8 @@ def binarize(norm: np.ndarray, cfg: Config = CFG) -> np.ndarray:
 
 
 def despeckle(binary: np.ndarray, max_area: int) -> np.ndarray:
-    n, lab, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+    """Remove connected components no larger than max_area pixels."""
+    _n, lab, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
     small = stats[:, cv2.CC_STAT_AREA] <= max_area
     small[0] = False
     out = binary.copy()
@@ -50,6 +54,7 @@ def despeckle(binary: np.ndarray, max_area: int) -> np.ndarray:
 # ----------------------------------------------------------------------------
 # deskew
 # ----------------------------------------------------------------------------
+
 
 def _profile_score(small: np.ndarray, angle: float) -> float:
     hh, ww = small.shape
@@ -96,6 +101,7 @@ def rotation_matrix(shape: tuple[int, int], angle: float) -> tuple[np.ndarray, t
 # perspective from text geometry
 # ----------------------------------------------------------------------------
 
+
 def _robust_line(u: np.ndarray, v: np.ndarray, tol: float, min_inliers: int):
     """Fit v = a*u + b robustly (all point pairs as RANSAC hypotheses). None if weak."""
     n = len(u)
@@ -121,21 +127,20 @@ def _aligned_right_edge(blobs, rows, tol: float, need: int):
     """Right-most straight line x = a*y + b that many rows' blobs end on (right-aligned
     numbers of one column).  Any column will do for the homography; the right-most one
     conditions it best.  None if no edge has `need` supporting rows."""
-    pts = [(st.row_center(blobs, r), blobs[i].x1, k)
-           for k, r in enumerate(rows) for i in r[1:]]
+    pts = [(st.row_center(blobs, r), blobs[i].x1, k) for k, r in enumerate(rows) for i in r[1:]]
     if len(pts) < 2:
         return None
     y = np.array([p[0] for p in pts])
     x = np.array([p[1] for p in pts], float)
     rid = np.array([p[2] for p in pts])
     n_rows = len(rows)
-    best = None                                     # ((support, mean x), inlier mask)
+    best = None  # ((support, mean x), inlier mask)
     for i in range(len(pts)):
         for j in range(i + 1, len(pts)):
             if abs(rid[j] - rid[i]) < max(2, n_rows // 3):
                 continue
             a = (x[j] - x[i]) / (y[j] - y[i])
-            if abs(a) > 0.15:                       # > ~8.5 deg off vertical: not an edge
+            if abs(a) > 0.15:  # > ~8.5 deg off vertical: not an edge
                 continue
             b = x[i] - a * y[i]
             inl = np.abs(x - (a * y + b)) <= tol
@@ -171,21 +176,24 @@ def text_quad(binary: np.ndarray, cfg: Config = CFG):
     left = _robust_line(ys, lx, tol, need)
     right = _aligned_right_edge(blobs, body, tol, need)
     full = [r for r in rows if len(r) >= 3] or rows
-    top = _robust_line(np.array([blobs[i].cx for i in full[0]]),
-                       np.array([blobs[i].cy for i in full[0]]), tol, 2)
-    bot = _robust_line(np.array([blobs[i].cx for i in full[-1]]),
-                       np.array([blobs[i].cy for i in full[-1]]), tol, 2)
+    top = _robust_line(
+        np.array([blobs[i].cx for i in full[0]]), np.array([blobs[i].cy for i in full[0]]), tol, 2
+    )
+    bot = _robust_line(
+        np.array([blobs[i].cx for i in full[-1]]), np.array([blobs[i].cy for i in full[-1]]), tol, 2
+    )
     if None in (left, right, top, bot):
         return None
 
-    def cross(hline, vline):          # y = a x + b  and  x = c y + d
+    def cross(hline, vline):  # y = a x + b  and  x = c y + d
         a, b = hline
         c, d = vline
         y = (a * d + b) / (1 - a * c)
         return np.array([c * y + d, y])
 
-    quad = np.array([cross(top, left), cross(top, right),
-                     cross(bot, right), cross(bot, left)], np.float32)
+    quad = np.array(
+        [cross(top, left), cross(top, right), cross(bot, right), cross(bot, left)], np.float32
+    )
     return quad, h
 
 
@@ -205,7 +213,7 @@ def rectify_homography(binary: np.ndarray, cfg: Config = CFG):
         ang = np.degrees(np.arctan2(p[1], p[0]) - np.arctan2(q[1], q[0]))
         if abs((ang + 180) % 360 - 180) > 12:
             return None
-    dst = np.array([tl, tl + [wd, 0], tl + [wd, hd], tl + [0, hd]], np.float32)
+    dst = np.array([tl, np.add(tl, [wd, 0]), np.add(tl, [wd, hd]), np.add(tl, [0, hd])], np.float32)
     H = cv2.getPerspectiveTransform(quad, dst)
     return H
 

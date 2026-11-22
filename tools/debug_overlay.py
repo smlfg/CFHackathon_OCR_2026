@@ -6,6 +6,7 @@
 green boxes = text blobs (with OCR text if --ocr), blue = column bounds,
 red = row bounds, magenta = removed rules, orange = rs=2 stub.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -17,8 +18,8 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from tablesalt import preprocess, structure  # noqa: E402
-from tablesalt.io_utils import load_gray  # noqa: E402
+from tablesalt import preprocess, structure
+from tablesalt.io_utils import load_gray
 
 
 def overlay(img_path: Path, with_ocr: bool = False) -> np.ndarray:
@@ -30,13 +31,22 @@ def overlay(img_path: Path, with_ocr: bool = False) -> np.ndarray:
     texts = {}
     if with_ocr:
         from tablesalt import ocr
+
         res = ocr.read_blobs(prep.gray, lay.blobs, lay.h, rules_mask=rules)
         texts = {i: t for i, (t, _) in enumerate(res)}
     for i, b in enumerate(lay.blobs):
         cv2.rectangle(vis, (b.x0, b.y0), (b.x1 - 1, b.y1 - 1), (0, 170, 0), 1)
         if i in texts:
-            cv2.putText(vis, texts[i], (b.x0, b.y0 - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
-                        (0, 120, 255), 1, cv2.LINE_AA)
+            cv2.putText(
+                vis,
+                texts[i],
+                (b.x0, b.y0 - 2),
+                cv2.FONT_HERSHEY_SIMPLEX,
+                0.4,
+                (0, 120, 255),
+                1,
+                cv2.LINE_AA,
+            )
     H, W = vis.shape[:2]
     for x in lay.grid.col_bounds:
         cv2.line(vis, (int(x), 0), (int(x), H - 1), (255, 0, 0), 1)
@@ -46,9 +56,17 @@ def overlay(img_path: Path, with_ocr: bool = False) -> np.ndarray:
         for i in lay.rows[lay.stub_row]:
             b = lay.blobs[i]
             cv2.rectangle(vis, (b.x0 - 2, b.y0 - 2), (b.x1 + 1, b.y1 + 1), (0, 140, 255), 2)
-    cv2.putText(vis, f"angle={prep.angle} H={prep.homography} h={lay.h:.1f} "
-                f"rows={len(lay.rows)} cols={lay.grid.n_cols}",
-                (5, 15), cv2.FONT_HERSHEY_SIMPLEX, 0.45, (0, 0, 255), 1, cv2.LINE_AA)
+    cv2.putText(
+        vis,
+        f"angle={prep.angle} H={prep.homography} h={lay.h:.1f} "
+        f"rows={len(lay.rows)} cols={lay.grid.n_cols}",
+        (5, 15),
+        cv2.FONT_HERSHEY_SIMPLEX,
+        0.45,
+        (0, 0, 255),
+        1,
+        cv2.LINE_AA,
+    )
     return vis
 
 

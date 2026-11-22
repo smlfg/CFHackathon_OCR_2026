@@ -1,4 +1,5 @@
 """Check a cell list: every (r, c) grid position covered exactly once, spans inside the grid."""
+
 from __future__ import annotations
 
 
@@ -35,4 +36,5 @@ def check(cells: list[dict]) -> list[str]:
 
 
 def is_valid(cells: list[dict]) -> bool:
+    """True if the cell list covers the grid exactly once."""
     return not check(cells)

@@ -7,6 +7,7 @@ Generator conventions (docs/NOTES.md):
   "n/a", "—" (em dash), "see note 3", centred over both columns.
 * "–" (en dash), "n/a" and "" also occur as single cells.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -43,15 +44,19 @@ def _merge_kind(text: str) -> str | None:
     if lx.score(t, "see note 3") >= 70 or ("note" in t and len(t) <= 14):
         return "see note 3"
     # body text without digits that is not a dash can only be "n/a" (OCR: "Wa", "nia", ...)
-    if not any(ch.isdigit() for ch in t) and len(t) <= 5 and \
-            not all(ch in "-–—_~=" for ch in t):
+    if not any(ch.isdigit() for ch in t) and len(t) <= 5 and not all(ch in "-–—_~=" for ch in t):
         return "n/a"
     return None
 
 
-def group_partition(centers: list[float], extents: list[tuple[float, float]],
-                    bounds: list[float], first: int, last: int,
-                    max_span: int = 3) -> list[tuple[int, int]] | None:
+def group_partition(
+    centers: list[float],
+    extents: list[tuple[float, float]],
+    bounds: list[float],
+    first: int,
+    last: int,
+    max_span: int = 3,
+) -> list[tuple[int, int]] | None:
     """Split columns first..last into len(centers) consecutive runs (1..max_span wide) so
     every label sits centred over its run.  Dynamic programming; None if impossible."""
     k = len(centers)
@@ -73,13 +78,12 @@ def group_partition(centers: list[float], extents: list[tuple[float, float]],
                 x0, x1 = bounds[cols[b]], bounds[cols[e - 1] + 1]
                 c = abs(centers[g - 1] - (x0 + x1) / 2)
                 ex0, ex1 = extents[g - 1]
-                c += 3 * max(0.0, x0 - ex0) + 3 * max(0.0, ex1 - x1)   # must fit inside
+                c += 3 * max(0.0, x0 - ex0) + 3 * max(0.0, ex1 - x1)  # must fit inside
                 if cost[g - 1][b] + c < cost[g][e]:
                     cost[g][e] = cost[g - 1][b] + c
                     back[g][e] = b
     if cost[k][m] == INF:
-        return None if max_span >= m else group_partition(centers, extents, bounds,
-                                                         first, last, m)
+        return None if max_span >= m else group_partition(centers, extents, bounds, first, last, m)
     runs, e = [], m
     for g in range(k, 0, -1):
         b = back[g][e]
@@ -88,8 +92,10 @@ def group_partition(centers: list[float], extents: list[tuple[float, float]],
     return runs[::-1]
 
 
-def header_rows(lay: Layout, real_rows: list[list[int]], ranges: dict[int, tuple[int, int]],
-                texts: list[str]) -> int:
+def header_rows(
+    lay: Layout, real_rows: list[list[int]], ranges: dict[int, tuple[int, int]], texts: list[str]
+) -> int:
+    """Decide whether the table has one or two header rows."""
     if lay.stub_row is not None:
         return 2
     if len(real_rows) < 3:
@@ -105,7 +111,7 @@ def header_rows(lay: Layout, real_rows: list[list[int]], ranges: dict[int, tuple
     tt = [texts[i] for i in top if lx.norm(texts[i])]
     if tt:
         g = np.mean([lx.best(t, lx.GROUP_NAMES)[1] for t in tt])
-        c = np.mean([lx.best(t, sum(lx.COL_POOLS, []))[1] for t in tt])
+        c = np.mean([lx.best(t, [x for p in lx.COL_POOLS for x in p])[1] for t in tt])
         if g > c and g >= 60:
             return 2
     return 1
@@ -119,7 +125,7 @@ def build_cells(lay: Layout, texts: list[str], cfg: Config = CFG) -> tuple[list[
     cross = cfg.cross_px * h
     blobs = lay.blobs
     texts = list(texts)
-    for i, b in enumerate(blobs):                         # dashes: shape beats OCR
+    for i, b in enumerate(blobs):  # dashes: shape beats OCR
         d = classify_dash(b, h, cfg)
         if d is not None:
             texts[i] = d
@@ -135,8 +141,7 @@ def build_cells(lay: Layout, texts: list[str], cfg: Config = CFG) -> tuple[list[
         for dr in range(rs):
             for dc in range(cs):
                 taken[r + dr][c + dc] = True
-        txt = " ".join(texts[i] for i in sorted(ids, key=lambda i: blobs[i].x0)
-                       if texts[i]).strip()
+        txt = " ".join(texts[i] for i in sorted(ids, key=lambda i: blobs[i].x0) if texts[i]).strip()
         cells.append(Cell(text=txt, r=r, c=c, rs=rs, cs=cs, blobs=list(ids), header=header))
 
     start = 0
@@ -145,30 +150,60 @@ def build_cells(lay: Layout, texts: list[str], cfg: Config = CFG) -> tuple[list[
         stub_ids += [i for i in real_rows[0] + real_rows[1] if ranges[i][1] == 0]
         add(0, 0, 2, 1, stub_ids, header=True)
         top = sorted((i for i in real_rows[0] if ranges[i][1] >= 1), key=lambda i: blobs[i].cx)
-        runs = group_partition([blobs[i].cx for i in top],
-                               [(blobs[i].x0, blobs[i].x1) for i in top],
-                               bounds, 1, n_cols - 1) if top else None
+        runs = (
+            group_partition(
+                [blobs[i].cx for i in top],
+                [(blobs[i].x0, blobs[i].x1) for i in top],
+                bounds,
+                1,
+                n_cols - 1,
+            )
+            if top
+            else None
+        )
         if runs is not None:
-            for i, (a, b) in zip(top, runs):
+            for i, (a, b) in zip(top, runs, strict=False):
                 add(0, a, 1, b - a + 1, [i], header=True)
         for c in range(1, n_cols):
             if not taken[0][c]:
-                add(0, c, 1, 1, [i for i in top if ranges[i][0] <= c <= ranges[i][1]
-                                 and runs is None and ranges[i][0] == c], header=True)
+                add(
+                    0,
+                    c,
+                    1,
+                    1,
+                    [
+                        i
+                        for i in top
+                        if ranges[i][0] <= c <= ranges[i][1] and runs is None and ranges[i][0] == c
+                    ],
+                    header=True,
+                )
         for c in range(1, n_cols):
-            add(1, c, 1, 1, [i for i in real_rows[1] if _home(ranges[i], blobs[i], bounds) == c],
-                header=True)
+            add(
+                1,
+                c,
+                1,
+                1,
+                [i for i in real_rows[1] if _home(ranges[i], blobs[i], bounds) == c],
+                header=True,
+            )
         start = 2
     elif n_rows >= 1:
         for c in range(n_cols):
-            add(0, c, 1, 1, [i for i in real_rows[0] if _home(ranges[i], blobs[i], bounds) == c],
-                header=True)
+            add(
+                0,
+                c,
+                1,
+                1,
+                [i for i in real_rows[0] if _home(ranges[i], blobs[i], bounds) == c],
+                header=True,
+            )
         start = 1
 
     for r in range(start, n_rows):
         row = real_rows[r]
         per_col: dict[int, list[int]] = {}
-        merges: list[tuple[int, int, int]] = []          # (blob, c, cs)
+        merges: list[tuple[int, int, int]] = []  # (blob, c, cs)
         for i in row:
             lo, hi = ranges[i]
             if lo == 0:
@@ -189,8 +224,9 @@ def build_cells(lay: Layout, texts: list[str], cfg: Config = CFG) -> tuple[list[
             per_col.setdefault(_home((lo, hi), blobs[i], bounds), []).append(i)
         for i, c, cs in merges:
             cs = min(cs, n_cols - c)
-            if any(taken[r][c + d] for d in range(cs)) or \
-                    any(per_col.get(c + d) for d in range(cs)):
+            if any(taken[r][c + d] for d in range(cs)) or any(
+                per_col.get(c + d) for d in range(cs)
+            ):
                 per_col.setdefault(_home(ranges[i], blobs[i], bounds), []).append(i)
                 continue
             if texts[i] == lx.EN_DASH:
@@ -209,8 +245,9 @@ def _home(rng: tuple[int, int], b: Blob, bounds: list[float]) -> int:
     return int(np.clip(np.searchsorted(bounds, b.cx) - 1, lo, hi))
 
 
-def _best_pair(b: Blob, lo: int, hi: int, bounds: list[float], n_cols: int,
-               kind: str) -> int | None:
+def _best_pair(
+    b: Blob, lo: int, hi: int, bounds: list[float], n_cols: int, kind: str
+) -> int | None:
     """Left column of the 2-wide merge that centres this blob best (None = single cell)."""
     if kind == "geom" and hi > lo:
         return lo if lo >= 1 else None

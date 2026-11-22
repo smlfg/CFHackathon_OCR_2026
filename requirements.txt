@@ -7,3 +7,4 @@ opencv-python-headless>=4.8
 pytesseract>=0.3.10
 rapidfuzz>=3.0
 pytest>=8.0
+pypdfium2>=4.30

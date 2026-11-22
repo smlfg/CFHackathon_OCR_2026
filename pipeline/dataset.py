@@ -3,6 +3,7 @@
 `dev` is the official 24-table yardstick that ships with the repo. Every other
 set comes from generate_dataset.py and is generated once, then never touched.
 """
+
 from __future__ import annotations
 
 import json
@@ -55,8 +56,16 @@ def ensure(name: str, n: int = 240, seed: int = 2, generate: bool = False) -> Da
             raise SystemExit(f"dataset '{name}' missing at {path}; pass --generate to build it")
         print(f"[data] generating {n} tables -> {path}", flush=True)
         subprocess.run(
-            [sys.executable, str(config.ROOT / "generate_dataset.py"),
-             "--out", str(path), "--n", str(n), "--seed", str(seed)],
+            [
+                sys.executable,
+                str(config.ROOT / "generate_dataset.py"),
+                "--out",
+                str(path),
+                "--n",
+                str(n),
+                "--seed",
+                str(seed),
+            ],
             check=True,
         )
     return load(name)

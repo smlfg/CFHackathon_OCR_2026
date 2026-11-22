@@ -1,22 +1,26 @@
 #!/usr/bin/env python3
 """Turn raw model text into TableSalt prediction files (HTML, for the gallery).
 
-    python vlm_to_html.py --raw raw/paddle  --out pred_paddle  --format otsl
-    python vlm_to_html.py --raw raw/lighton --out pred_lighton --format auto
+    python experiments/vlm_scripts/vlm_to_html.py --raw raw/paddle  --out pred_paddle  --format otsl
+    python experiments/vlm_scripts/vlm_to_html.py --raw raw/lighton --out pred_lighton --format auto
 
 `otsl` understands PaddleOCR-VL's OTSL cells (<fcel> <lcel> <ucel> <xcel> <ecel> <nl>)
 and reconstructs rowspan/colspan. `auto` uses lighton_cells, which keeps a real HTML
 table if the model wrote one and otherwise reads a markdown pipe table (spans are
 impossible there). For the official cells JSON use lighton_cells.py directly.
 """
+
 from __future__ import annotations
 
 import argparse
 import re
+import sys
 from pathlib import Path
 
-from evaluate import cells_json_to_html
+sys.path.insert(0, str(Path(__file__).resolve().parents[2]))  # repo root: official scorer
 from lighton_cells import text_to_cells
+
+from evaluate import cells_json_to_html
 
 TAG = re.compile(r"<(fcel|ecel|lcel|ucel|xcel|nl)>")
 
@@ -31,21 +35,20 @@ def otsl_to_cells(text: str) -> list[dict]:
         if tag == "nl":
             r, c = r + 1, 0
         elif tag in ("fcel", "ecel"):
-            cell = {"text": "" if tag == "ecel" else body.strip(), "r": r, "c": c,
-                    "rs": 1, "cs": 1}
+            cell = {"text": "" if tag == "ecel" else body.strip(), "r": r, "c": c, "rs": 1, "cs": 1}
             cells.append(cell)
             cover[(r, c)] = cell
             c += 1
         elif tag == "lcel":
             left = cover.get((r, c - 1))
-            if left is not None:                                 # extend that cell right
+            if left is not None:  # extend that cell right
                 if left["r"] == r:
                     left["cs"] += 1
                 cover[(r, c)] = left
             c += 1
         elif tag == "ucel":
             up = cover.get((r - 1, c))
-            if up is not None:                                   # extend that cell down
+            if up is not None:  # extend that cell down
                 if up["c"] == c:
                     up["rs"] += 1
                 cover[(r, c)] = up

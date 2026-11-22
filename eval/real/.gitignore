@@ -1,0 +1,8 @@
+# Downloaded/converted data and outputs stay local (licenses: see README.md). Only code,
+# README and reports/summary.json are committed.
+samples/
+raw/
+predictions/
+reports/*
+!reports/summary.json
+__pycache__/

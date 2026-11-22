@@ -6,6 +6,7 @@
 
 Predictions land in out_eval/<dataset name>/, the per-table report next to them.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -60,9 +61,15 @@ def main() -> None:
     for e in manifest:
         gt_html = (gt / e["id"] / "gt" / "table.html").read_text(encoding="utf-8")
         ph = ev.load_prediction(pred, e["id"])
-        rows.append(dict(id=e["id"], tier=e["tier"], style=e["style"],
-                         teds=ev.teds(gt_html, ph) if ph else 0.0,
-                         teds_s=ev.teds(gt_html, ph, True) if ph else 0.0))
+        rows.append(
+            dict(
+                id=e["id"],
+                tier=e["tier"],
+                style=e["style"],
+                teds=ev.teds(gt_html, ph) if ph else 0.0,
+                teds_s=ev.teds(gt_html, ph, True) if ph else 0.0,
+            )
+        )
     (pred.parent / f"{name}_report.json").write_text(json.dumps(rows, indent=1), encoding="utf-8")
 
     def mean(key, **flt):
@@ -72,18 +79,22 @@ def main() -> None:
     tiers = " ".join(f"{t}:{res['per_tier'].get(t, 0):.3f}" for t in ("T0", "T1", "T2", "T3"))
     styles = " ".join(f"{s}:{mean('teds', style=s):.3f}" for s in ("grid", "hlines", "borderless"))
     fb = sum(1 for i in infos if i.get("mode") != "pipeline")
-    print(f"\nFINAL {res['final']:.4f}  TEDSw {res['teds_weighted']:.4f}  QA {res['qa_accuracy']:.4f}"
-          f"  CellF1 {res['cell_f1']:.4f}  TEDS-S {mean('teds_s'):.4f}")
+    print(
+        f"\nFINAL {res['final']:.4f}  TEDSw {res['teds_weighted']:.4f}  QA {res['qa_accuracy']:.4f}"
+        f"  CellF1 {res['cell_f1']:.4f}  TEDS-S {mean('teds_s'):.4f}"
+    )
     print(f"per tier  {tiers}\nper style {styles}")
     print(f"{per_table:.2f} s/table (per worker), wall {wall:.1f}s, fallbacks {fb}")
 
     if not a.no_log:
         p = ROOT / "docs" / "RESULTS.md"
-        line = (f"| {dt.date.today().isoformat()} | {a.note or '-'} | {name} ({len(rows)}) "
-                f"| {res['final']:.4f} | {res['per_tier'].get('T0', 0):.3f} "
-                f"| {res['per_tier'].get('T1', 0):.3f} | {res['per_tier'].get('T2', 0):.3f} "
-                f"| {res['per_tier'].get('T3', 0):.3f} | {res['qa_accuracy']:.3f} "
-                f"| {mean('teds_s'):.3f} | {per_table:.2f} | {fb} |\n")
+        line = (
+            f"| {dt.date.today().isoformat()} | {a.note or '-'} | {name} ({len(rows)}) "
+            f"| {res['final']:.4f} | {res['per_tier'].get('T0', 0):.3f} "
+            f"| {res['per_tier'].get('T1', 0):.3f} | {res['per_tier'].get('T2', 0):.3f} "
+            f"| {res['per_tier'].get('T3', 0):.3f} | {res['qa_accuracy']:.3f} "
+            f"| {mean('teds_s'):.3f} | {per_table:.2f} | {fb} |\n"
+        )
         with p.open("a", encoding="utf-8") as f:
             f.write(line)
         print(f"appended to {p.relative_to(ROOT)}")

@@ -1,4 +1,5 @@
 """End to end: one generated table per tier runs through the full pipeline without fallback."""
+
 import importlib.util
 import random
 import shutil
@@ -10,8 +11,9 @@ from tablesalt import run, validate
 
 ROOT = Path(__file__).resolve().parents[1]
 
-pytestmark = pytest.mark.skipif(shutil.which(run.CFG.tess_cmd) is None,
-                                reason="tesseract not installed")
+pytestmark = pytest.mark.skipif(
+    shutil.which(run.CFG.tess_cmd) is None, reason="tesseract not installed"
+)
 
 
 @pytest.fixture(scope="module")
@@ -22,8 +24,10 @@ def gen():
     return mod
 
 
-@pytest.mark.parametrize("tier, style, seed", [("T0", "grid", 11), ("T1", "hlines", 12),
-                                               ("T2", "borderless", 13), ("T3", "grid", 14)])
+@pytest.mark.parametrize(
+    "tier, style, seed",
+    [("T0", "grid", 11), ("T1", "hlines", 12), ("T2", "borderless", 13), ("T3", "grid", 14)],
+)
 def test_tier(tmp_path, gen, tier, style, seed):
     rng = random.Random(seed)
     spec = gen.make_table_spec(rng)
