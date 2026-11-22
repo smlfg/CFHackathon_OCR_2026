@@ -80,6 +80,8 @@ class Layout:
 
 @dataclass
 class Cell:
+    """One logical table cell with its position, spans and source blobs."""
+
     text: str
     r: int
     c: int

@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+# ruff: noqa: E501
 """Build a single self-contained gallery.html from a TableSalt dataset.
 
 Usage:
@@ -255,7 +256,7 @@ def build(gt: Path, out: Path, pred: Path | None = None) -> Path:
 
         if pred is not None:
             if pred_cells:
-                status = diff_cells(cells, pred_cells)
+                diff_cells(cells, pred_cells)
                 pred_panel = (
                     "<div class=panel><h3>prediction "
                     f"<span class=src>{esc(pred.name)}</span></h3>"
@@ -286,7 +287,8 @@ def build(gt: Path, out: Path, pred: Path | None = None) -> Path:
         gt_panel = "<div class=panel><h3>ground truth</h3>" + render_table(cells) + "</div>"
         cards.append(
             f'<article class=card data-tier="{esc(entry.get("tier"))}" '
-            f'data-style="{esc(entry.get("style"))}" data-teds="{teds if teds is not None else ""}" '
+            f'data-style="{esc(entry.get("style"))}" '
+            f'data-teds="{teds if teds is not None else ""}" '
             f'id="{esc(tid)}"><header><h2>{esc(tid)}</h2><div class=tags>'
             f'<span class="tag tier {esc(entry.get("tier"))}">{esc(entry.get("tier"))}</span>'
             f"<span class=tag>{esc(entry.get('style'))}</span>"

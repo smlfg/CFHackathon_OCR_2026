@@ -16,6 +16,8 @@ from .config import CFG, Config
 
 @dataclass
 class Rules:
+    """Detected rule coordinates and the resulting table style."""
+
     style: str
     v_xs: list[float] = field(default_factory=list)  # x of vertical rules, left to right
     h_ys: list[float] = field(default_factory=list)  # y of horizontal rules, top to bottom

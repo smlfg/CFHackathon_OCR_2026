@@ -23,6 +23,7 @@ WHITE = 255
 
 
 def normalize_illumination(gray: np.ndarray, cfg: Config = CFG) -> np.ndarray:
+    """Divide out the estimated background so shadows and fills fade."""
     k = cv2.getStructuringElement(cv2.MORPH_RECT, (cfg.bg_kernel, cfg.bg_kernel))
     bg = cv2.morphologyEx(gray, cv2.MORPH_CLOSE, k)
     bg = cv2.blur(bg, (cfg.bg_kernel, cfg.bg_kernel))
@@ -32,6 +33,7 @@ def normalize_illumination(gray: np.ndarray, cfg: Config = CFG) -> np.ndarray:
 
 
 def binarize(norm: np.ndarray, cfg: Config = CFG) -> np.ndarray:
+    """Otsu-threshold a normalized image (clamped) into a despeckled ink mask."""
     blur = cv2.GaussianBlur(norm, (3, 3), 0)
     t, _ = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     t = float(np.clip(t, cfg.bin_thresh_min, cfg.bin_thresh_max))
@@ -40,7 +42,8 @@ def binarize(norm: np.ndarray, cfg: Config = CFG) -> np.ndarray:
 
 
 def despeckle(binary: np.ndarray, max_area: int) -> np.ndarray:
-    n, lab, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+    """Remove connected components no larger than max_area pixels."""
+    _n, lab, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
     small = stats[:, cv2.CC_STAT_AREA] <= max_area
     small[0] = False
     out = binary.copy()
@@ -210,7 +213,7 @@ def rectify_homography(binary: np.ndarray, cfg: Config = CFG):
         ang = np.degrees(np.arctan2(p[1], p[0]) - np.arctan2(q[1], q[0]))
         if abs((ang + 180) % 360 - 180) > 12:
             return None
-    dst = np.array([tl, tl + [wd, 0], tl + [wd, hd], tl + [0, hd]], np.float32)
+    dst = np.array([tl, np.add(tl, [wd, 0]), np.add(tl, [wd, hd]), np.add(tl, [0, hd])], np.float32)
     H = cv2.getPerspectiveTransform(quad, dst)
     return H
 

@@ -100,11 +100,13 @@ SINGLE_SPECIALS = [EN_DASH, "n/a", ""]
 
 
 def norm(s: str) -> str:
+    """NFKC-normalize, casefold and collapse whitespace for fuzzy matching."""
     s = unicodedata.normalize("NFKC", s or "").casefold()
     return re.sub(r"\s+", " ", s).strip()
 
 
 def score(a: str, b: str) -> float:
+    """Fuzzy similarity (0..100) between two strings after normalization."""
     return float(fuzz.ratio(norm(a), norm(b)))
 
 

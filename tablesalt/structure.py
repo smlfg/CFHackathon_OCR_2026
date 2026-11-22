@@ -8,6 +8,8 @@ in the body rows.  Works the same for grid, hlines and borderless once rules are
 
 from __future__ import annotations
 
+import itertools
+
 import cv2
 import numpy as np
 
@@ -22,7 +24,7 @@ from .types import Blob, Grid, Layout
 
 def text_height(binary: np.ndarray) -> float:
     """Median height of character-sized components (~cap height of the body font)."""
-    n, _, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
+    _n, _, stats, _ = cv2.connectedComponentsWithStats(binary, connectivity=8)
     hs = stats[1:, cv2.CC_STAT_HEIGHT]
     ws = stats[1:, cv2.CC_STAT_WIDTH]
     keep = (hs >= 8) & (hs <= 60) & (ws <= 3 * hs)
@@ -67,6 +69,7 @@ def _keep_long(
 
 
 def remove_lines(binary: np.ndarray, hmask: np.ndarray, vmask: np.ndarray) -> np.ndarray:
+    """Remove detected horizontal and vertical rules from the binary image."""
     rules = cv2.dilate(cv2.bitwise_or(hmask, vmask), np.ones((3, 3), np.uint8))
     return cv2.bitwise_and(binary, cv2.bitwise_not(rules))
 
@@ -78,7 +81,7 @@ def remove_lines(binary: np.ndarray, hmask: np.ndarray, vmask: np.ndarray) -> np
 
 def find_blobs(text: np.ndarray, h: float, cfg: Config = CFG) -> list[Blob]:
     """Join characters of one cell into a blob; drop specks."""
-    kx = max(3, int(round(cfg.blob_join_x * h)))
+    kx = max(3, round(cfg.blob_join_x * h))
     joined = cv2.dilate(text, cv2.getStructuringElement(cv2.MORPH_RECT, (kx, cfg.blob_join_y)))
     n, lab, stats, _ = cv2.connectedComponentsWithStats(joined, connectivity=8)
     blobs: list[Blob] = []
@@ -144,6 +147,7 @@ def cluster_rows(blobs: list[Blob], h: float, cfg: Config = CFG) -> list[list[in
 
 
 def row_center(blobs: list[Blob], row: list[int]) -> float:
+    """Median y-centre of the blobs in a row."""
     return float(np.median([blobs[i].cy for i in row]))
 
 
@@ -346,7 +350,7 @@ def analyze(binary: np.ndarray, cfg: Config = CFG) -> Layout:
     centers = [row_center(blobs, r) for r in real_rows]
     pitch = float(np.median(np.diff(centers))) if len(centers) > 1 else 3 * h
     row_bounds = [centers[0] - pitch / 2]
-    row_bounds += [(a + b) / 2 for a, b in zip(centers, centers[1:])]
+    row_bounds += [(a + b) / 2 for a, b in itertools.pairwise(centers)]
     row_bounds.append(centers[-1] + pitch / 2)
     grid = Grid(row_bounds=row_bounds, col_bounds=col_bounds, row_centers=centers)
     return Layout(

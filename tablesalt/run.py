@@ -47,7 +47,6 @@ def predict(img_path: Path, cfg: Config = CFG, info: dict | None = None) -> list
     cands = ocr.read_variants(prep.gray, lay.blobs, lay.h, rules_mask=rules, cfg=cfg)
     best = [max(c, key=lambda tc: tc[1]) for c in cands]
     texts = [t for t, _ in best]
-    confs = [c for _, c in best]
 
     cells, hr = spans.build_cells(lay, texts, cfg)
     for c in cells:
@@ -75,7 +74,7 @@ def predict(img_path: Path, cfg: Config = CFG, info: dict | None = None) -> list
                 rules_mask=rules,
                 cfg=replace(cfg, ocr_margin=m, ocr_median=md, tess_psm=psm),
             )
-            for i, r2 in zip(cand, res2):  # one more candidate per numeric blob
+            for i, r2 in zip(cand, res2, strict=False):  # one more candidate per numeric blob
                 cands[i] = cands[i] + [r2]
             for i in range(len(cands)):  # keep the candidate lists rectangular
                 if len(cands[i]) < len(cfg.ocr_variants) + 1:
@@ -114,6 +113,7 @@ def _baseline():
 
 
 def baseline_cells(img_path: Path) -> list[dict]:
+    """Read the Tesseract floor baseline and convert its HTML table to cells."""
     import html as _html
     import re
 
@@ -140,6 +140,7 @@ SECOND_OPINIONS = [  # layout settings; tuned on fresh tables, never on dev
 
 
 def predict_checked(img_path: Path, cfg: Config = CFG, info: dict | None = None) -> list[dict]:
+    """Predict, self-check, and retry flagged tables with alternate settings."""
     info = info if info is not None else {}
     t0 = time.perf_counter()
     best, err = None, None
@@ -223,6 +224,7 @@ def _predict_with_fallbacks(src: Path, tmp: Path, info: dict, verbose: bool) -> 
 def main(
     images_dir, out_dir, workers: int | None = None, verbose: bool = False, log: str | None = None
 ) -> list[dict]:
+    """Run the batch over a folder of images and write one JSON per table."""
     images = list_images(Path(images_dir))
     Path(out_dir).mkdir(parents=True, exist_ok=True)
     workers = workers or max(1, min(len(images), (os.cpu_count() or 2)))
@@ -241,8 +243,10 @@ def main(
     n_fb = sum(1 for i in infos if i.get("mode") != "pipeline")
     print(
         f"{len(infos)} tables in {total:.1f}s ({total / max(1, len(infos)):.2f}s/table wall, "
-        f"{workers} workers), fallbacks: {n_fb}, flagged: {sum(1 for i in infos if i.get('check'))}, "
-        f"fixed by 2nd read: {sum(1 for i in infos if i.get('check') and not i.get('check_after'))}, "
+        f"{workers} workers), fallbacks: {n_fb}, flagged: "
+        f"{sum(1 for i in infos if i.get('check'))}, "
+        f"fixed by 2nd read: "
+        f"{sum(1 for i in infos if i.get('check') and not i.get('check_after'))}, "
         f"tesseract errors: {sum(i.get('tesseract_errors', 0) for i in infos)}",
         flush=True,
     )
@@ -260,6 +264,7 @@ def _report(info: dict) -> dict:
 
 
 def cli(argv=None) -> None:
+    """Parse command-line arguments and run main()."""
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawTextHelpFormatter)
     ap.add_argument("--images", required=True)
     ap.add_argument("--out", required=True)

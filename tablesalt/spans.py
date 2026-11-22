@@ -95,6 +95,7 @@ def group_partition(
 def header_rows(
     lay: Layout, real_rows: list[list[int]], ranges: dict[int, tuple[int, int]], texts: list[str]
 ) -> int:
+    """Decide whether the table has one or two header rows."""
     if lay.stub_row is not None:
         return 2
     if len(real_rows) < 3:
@@ -110,7 +111,7 @@ def header_rows(
     tt = [texts[i] for i in top if lx.norm(texts[i])]
     if tt:
         g = np.mean([lx.best(t, lx.GROUP_NAMES)[1] for t in tt])
-        c = np.mean([lx.best(t, sum(lx.COL_POOLS, []))[1] for t in tt])
+        c = np.mean([lx.best(t, [x for p in lx.COL_POOLS for x in p])[1] for t in tt])
         if g > c and g >= 60:
             return 2
     return 1
@@ -161,7 +162,7 @@ def build_cells(lay: Layout, texts: list[str], cfg: Config = CFG) -> tuple[list[
             else None
         )
         if runs is not None:
-            for i, (a, b) in zip(top, runs):
+            for i, (a, b) in zip(top, runs, strict=False):
                 add(0, a, 1, b - a + 1, [i], header=True)
         for c in range(1, n_cols):
             if not taken[0][c]:

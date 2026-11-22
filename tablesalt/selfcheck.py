@@ -43,6 +43,7 @@ def _num_style(t: str):
 
 
 def check(cells: list[dict], max_empty_share: float = 0.15) -> list[str]:
+    """List plausibility problems for a table (empty means it looks right)."""
     problems: list[str] = []
     if not cells:
         return ["no cells"]
@@ -60,12 +61,12 @@ def check(cells: list[dict], max_empty_share: float = 0.15) -> list[str]:
         problems.append(f"header: {heads} is no known sequence")
     if hr == 2:
         stub = at.get((0, 0), {}).get("text", "")
-        if stub not in lexicon.STUB_NAMES + [""]:
+        if stub not in [*lexicon.STUB_NAMES, ""]:
             problems.append(f"groups: corner label {stub!r} unknown")
         for c in cells:
             if c["r"] == 0 and c["c"] > 0 and c["text"] not in lexicon.GROUP_NAMES:
                 problems.append(f"groups: {c['text']!r} unknown")
-    elif at.get((0, 0), {}).get("text", "") not in lexicon.STUB_NAMES + [""]:
+    elif at.get((0, 0), {}).get("text", "") not in [*lexicon.STUB_NAMES, ""]:
         problems.append(f"groups: corner label {at[(0, 0)]['text']!r} unknown")
 
     # row labels

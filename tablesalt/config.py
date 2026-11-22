@@ -12,6 +12,8 @@ from dataclasses import dataclass
 
 @dataclass(frozen=True)
 class Config:
+    """All pipeline thresholds as a frozen dataclass with tuned defaults."""
+
     # --- preprocess ---------------------------------------------------------
     bg_kernel: int = 31  # px, closing kernel for the illumination estimate
     bin_thresh_min: int = 120  # clamp for Otsu on the normalized image

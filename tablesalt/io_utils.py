@@ -28,6 +28,7 @@ def load_gray(path: Path) -> np.ndarray:
 
 
 def is_pdf(path: Path) -> bool:
+    """True if the path has a PDF extension."""
     return Path(path).suffix.lower() in PDF_EXTS
 
 

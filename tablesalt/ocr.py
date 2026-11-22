@@ -27,6 +27,7 @@ from .types import Blob
 def crop_blob(
     gray: np.ndarray, b: Blob, h: float, cfg: Config = CFG, rules_mask: np.ndarray | None = None
 ) -> np.ndarray:
+    """Crop one blob, whiten rules, scale to cap height and pad with white."""
     m = cfg.ocr_margin
     y0, y1 = max(0, b.y0 - m), min(gray.shape[0], b.y1 + m)
     x0, x1 = max(0, b.x0 - m), min(gray.shape[1], b.x1 + m)
@@ -81,6 +82,7 @@ def run_tesseract(
 
 
 def parse_tsv(tsv: str, n: int) -> list[tuple[str, float]]:
+    """Tesseract TSV output -> per-crop (text, mean word confidence)."""
     words: list[list[tuple[int, int, str, float]]] = [[] for _ in range(n)]
     reader = csv.reader(io.StringIO(tsv), delimiter="\t", quoting=csv.QUOTE_NONE)
     header = next(reader, None)
@@ -127,7 +129,9 @@ def read_variants(
         margin, median, psm = cfg.rescue_variant
         vcfg = replace(cfg, ocr_margin=margin, ocr_median=median, tess_psm=psm)
         for i, r in zip(
-            empty, read_blobs(gray, blobs, h, idx=empty, rules_mask=rules_mask, cfg=vcfg)
+            empty,
+            read_blobs(gray, blobs, h, idx=empty, rules_mask=rules_mask, cfg=vcfg),
+            strict=False,
         ):
             cands[i] = [r] * len(cands[i])
     return cands

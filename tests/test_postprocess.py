@@ -63,7 +63,7 @@ def test_render(ocr, fmt, want):
 
 def _table(header, labels, values, hr=1):
     cells = [Cell(text=t, r=0, c=c) for c, t in enumerate(header)]
-    for r, (lab, vals) in enumerate(zip(labels, values), start=hr):
+    for r, (lab, vals) in enumerate(zip(labels, values, strict=False), start=hr):
         cells.append(Cell(text=lab, r=r, c=0))
         cells += [Cell(text=v, r=r, c=c) for c, v in enumerate(vals, start=1)]
     return cells

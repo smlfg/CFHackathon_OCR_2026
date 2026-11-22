@@ -36,4 +36,5 @@ def check(cells: list[dict]) -> list[str]:
 
 
 def is_valid(cells: list[dict]) -> bool:
+    """True if the cell list covers the grid exactly once."""
     return not check(cells)

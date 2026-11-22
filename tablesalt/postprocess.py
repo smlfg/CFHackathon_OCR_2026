@@ -64,6 +64,8 @@ UNIT_ALIASES = {
 
 @dataclass
 class Num:
+    """Parsed numeric cell: sign, digits, separators, unit and negative style."""
+
     neg: bool
     digits: str
     dec_sep: str | None  # "." / "," if the text ends in <sep><2 digits>
@@ -125,6 +127,8 @@ def parse(text: str) -> Num | None:
 
 @dataclass
 class Fmt:
+    """Table-wide number format: style, integer separator, negatives and unit."""
+
     style: str = "en"  # en / de / int
     int_sep: str = ","
     parens: bool = False
@@ -132,6 +136,7 @@ class Fmt:
 
 
 def detect_format(nums: list[Num]) -> Fmt:
+    """Majority-vote the table's number style, separators, negatives and unit."""
     style = Counter()
     seps = Counter()
     neg = Counter()
@@ -172,6 +177,7 @@ def detect_format(nums: list[Num]) -> Fmt:
 
 
 def unit_of(tok: str) -> str | None:
+    """Canonical unit ('%', '€', 'kg', 'ms') for a raw OCR token, or None."""
     t = tok.strip().lower().replace(" ", "")
     if not t:
         return None
@@ -189,6 +195,7 @@ def unit_of(tok: str) -> str | None:
 
 
 def group(digits: str, sep: str) -> str:
+    """Insert thousands separators into a digit string."""
     digits = digits.lstrip("0") or "0"
     out = []
     while len(digits) > 3:
@@ -199,6 +206,7 @@ def group(digits: str, sep: str) -> str:
 
 
 def render(n: Num, f: Fmt) -> str:
+    """Render a parsed number in the table's canonical format."""
     d = n.digits
     if f.style in ("en", "de"):
         if len(d) < 3:
@@ -226,6 +234,7 @@ ALL_ROW_LABELS = [x for p in lx.ROW_POOLS for x in p]
 
 
 def role_vocab(c: Cell, hr: int) -> list[str] | None:
+    """Lexicon vocabulary allowed for a cell's role, or None for body values."""
     if c.r == 0 and c.c == 0:
         return lx.STUB_NAMES
     if c.r < hr:
@@ -299,6 +308,7 @@ def fix_table(
     cands: list[list[tuple[str, float]]] | None = None,
     blob_x: list[int] | None = None,
 ) -> list[Cell]:
+    """Snap headers and labels to the lexicon, choose reads and re-render numbers."""
     if cands is not None and blob_x is not None:
         choose_reads(cells, hr, cands, blob_x)
     by_pos = {(c.r, c.c): c for c in cells}
@@ -350,7 +360,7 @@ def fix_table(
         snapped = lx.assign_unique(
             [c.text for c in labels], lx.ROW_POOLS[k], cfg.row_label_min_score
         )
-        for c, sn in zip(labels, snapped):
+        for c, sn in zip(labels, snapped, strict=False):
             if sn is not None:
                 c.text = sn
 

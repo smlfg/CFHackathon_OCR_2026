@@ -79,7 +79,9 @@ def load_model(request: LoadRequest):
             config = load_config(request.repo)
         except Exception as exc:  # surface the real reason to the orchestrator
             STATE.update({"model": None, "processor": None, "config": None, "repo": None})
-            raise HTTPException(status_code=500, detail=f"load failed: {type(exc).__name__}: {exc}")
+            raise HTTPException(
+                status_code=500, detail=f"load failed: {type(exc).__name__}: {exc}"
+            ) from exc
         STATE.update(
             {
                 "model": model,
@@ -148,7 +150,7 @@ def chat_completions(payload: dict):
         except Exception as exc:
             raise HTTPException(
                 status_code=500, detail=f"generate failed: {type(exc).__name__}: {exc}"
-            )
+            ) from exc
         seconds = round(time.time() - started, 2)
     text = getattr(result, "text", None)
     if text is None:
