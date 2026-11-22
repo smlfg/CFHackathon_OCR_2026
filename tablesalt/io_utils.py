@@ -66,6 +66,9 @@ def write_json_atomic(path: Path, obj) -> None:
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             json.dump(obj, f, ensure_ascii=False)
+        # mkstemp creates 0600 files; inside the container that means root-only, so a scorer
+        # reading the bind mount as a normal host user got "Permission denied" (found 2026-11-22).
+        os.chmod(tmp, 0o644)
         os.replace(tmp, path)
     except BaseException:
         if os.path.exists(tmp):

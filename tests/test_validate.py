@@ -28,3 +28,14 @@ def test_overlap_detected():
 def test_bad_span_and_empty():
     assert check([]) == ["no cells"]
     assert any("bad" in p for p in check([cell(0, 0, rs=0)]))
+
+
+def test_atomic_write_is_world_readable(tmp_path):
+    """Predictions must be readable by the (non-root) scorer, not only by the container user."""
+    import stat
+
+    from tablesalt.io_utils import write_json_atomic
+
+    p = tmp_path / "t.json"
+    write_json_atomic(p, [{"text": "", "r": 0, "c": 0}])
+    assert stat.S_IMODE(p.stat().st_mode) & 0o044 == 0o044
