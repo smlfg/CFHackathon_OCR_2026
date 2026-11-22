@@ -195,7 +195,7 @@ file permissions. We wrote these ADRs and did not change any scoring behaviour.
 | nothing readable | one empty cell | ADR-012 |
 
 - **Evidence:** Today the third row falls straight through to the Tesseract floor (0.34). On generator data this never happens: 0 fallbacks on dev, val (200) and fresh96. The router therefore buys nothing measurable on the hidden set's distribution. It only pays on off-distribution inputs, and for those we have no labelled set.
-- **Revisit:** when a real-document test set exists (see `eval/real/` if present) **and** a GPU image budget is accepted. Cost: the 520 MB image grows to ≈ 3.6 GB (`0ea8b01`), and the build gets a pinned weight download.
+- **Revisit:** now that a real-document test exists (ADR-017, real TEDS 0.26–0.52) **and** a GPU image budget is accepted. Cost: the 520 MB image grows to ≈ 3.6 GB (`0ea8b01`), and the build gets a pinned weight download.
 
 ## ADR-016 — Capacity / auto-research pipeline   (2026-11-20, status: not built)
 - **Context:** Idea from 20 Nov (voice note "AgenticSolveAutoResearchDocker"). Several agents or containers would each optimise one pipeline component (preprocessing, structure, OCR) against the same baseline. Proven improvements and their decision records would be pooled in one shared pipeline. A capacity sweep would show how score scales with model size.
@@ -205,3 +205,28 @@ file permissions. We wrote these ADRs and did not change any scoring behaviour.
   - The tablesalt OCR tuning in [docs/RESULTS.md](../docs/RESULTS.md) is the manual version of the auto-research loop: one change, one measured row, regressions reverted.
 - **Evidence:** The voice note from 20 Nov ("Agentenoptimierung … belastbare Validierung") names the risk of automating this. Picking the best of many variants on the same 24 dev tables overstates the winner (winner's curse). Any automated loop needs a fresh seed per round plus a final untouched set, like fresh96 here.
 - **Revisit:** after the hackathon, if the pipeline is reused on real documents.
+
+## ADR-017 — External real-data evaluation   (2026-11-22, status: accepted; numbers measured 2026-11-22, code in [eval/real/](../eval/real/))
+- **Context:** All our numbers so far come from one generator: dev 0.9971, fresh96 0.9931. The hidden set comes from that generator too, but Lerrai's real setting is scans, photos and PDFs of real tables. Samuel set a second success criterion: **≥ 0.99 mean TEDS on five new real public datasets**. We did not want to claim generality from synthetic data, and we did not want to invent external numbers.
+- **Options:** A treat 0.997 on synthetic dev as general performance (cheap, misleading) / B first swap in or fine-tune a structure model or VLM, then measure (mixes "what does the submission do?" with "what could a bigger model do?"; no GPU tonight) / C build a small external pack now, score the submission pipeline as it is, and record the gap
+- **Choice:** **C.** Five public sources with cell-structure ground truth, converted to our `{text, r, c, rs, cs}` format and scored with the repo's `evaluate.py`. The scores are unweighted means: the T0–T3 tiers do not exist on external data. Only scripts, README and `reports/summary.json` are committed. Downloads stay git-ignored and can be re-fetched with `prepare_all.py`.
+- **Evidence:** `main` @ `973cc2d` (this branch changes no prediction), CPU Tesseract, n = 30 per set (cTDaR 18):
+
+| Dataset | Domain | TEDS | TEDS-S | Cell-F1 |
+|---|---|---:|---:|---:|
+| SciTSR-PD (CC0) | arXiv tables, PDF renders | 0.5166 | 0.6529 | 0.1756 |
+| FinTabNet (OTSL) | financial PDF tables | 0.4703 | 0.5801 | 0.1343 |
+| ICDAR-2013.c | government documents | 0.3192 | 0.4493 | 0.0737 |
+| PubTabNet (OTSL) | PubMed tables | 0.2590 | 0.4548 | 0.0675 |
+| ICDAR 2019 cTDaR B.1 | degraded archival scans, structure GT only | – | 0.2458 | – |
+
+  **Synthetic 0.99 vs. real 0.26–0.52 TEDS. 0 of 4 text-GT sets reach 0.99, so the 99 % real-data target is open** (gap 0.47–0.73 TEDS).
+  - *cTDaR:* the license is not clearly permissive (© PKU Founder Group, all rights reserved). Its data and download code are **not** in the repo; only the score row is. It has no cell text, so only TEDS-S counts.
+  - *Speed is not the problem:* ~1.1–1.4 s/table (152 s for 120 tables).
+  - *Main causes:*
+    - Structure already fails: TEDS-S is only 0.45–0.65, from multi-row headers, indented labels, dense typography and missing rules.
+    - Text then fails: Cell-F1 is 0.07–0.18, from exact-match OCR errors, scientific notation and scanned or degraded pages.
+    - Both trace back to generator-specific assumptions: font size, right-aligned numbers, lexicon snap, one number format (ADR-005/006/009).
+  - *Best single tables:* SciTSR-PD `1606.09371v1.5` TEDS 1.000; ICDAR-2013.c `us-gov-dataset_us-004_table_0` TEDS 0.981; FinTabNet `HAL.2014.page_42.pdf_125091` TEDS 0.952. These are easy grids, not dataset results.
+  - *Sampling caveat:* the first acceptable tables (≤ 16 rows / 10 cols / 80 cells), not a random sample.
+- **Revisit:** Rerun `eval/real/run_real_eval.py` after every pipeline change. Do not claim 99 % until the **dataset mean** TEDS with real text GT is ≥ 0.99 on five distinct sources. Closing the gap needs a general structure model or a VLM (ADR-004, ADR-015), not more generator tuning. That is a separate ADR. Still missing: a permissive photographed set with text GT, and a German tax-document set.

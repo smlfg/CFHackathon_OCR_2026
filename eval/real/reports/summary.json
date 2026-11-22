@@ -1,0 +1,82 @@
+{
+  "target": 0.99,
+  "target_note": "Samuel's success target is 99% TEDS on five new real datasets. Numbers below are measured, not invented. The current pipeline was tuned on 24 synthetic dev tables and is not expected to hit 99% on real scans.",
+  "datasets": [
+    {
+      "dataset": "fintabnet",
+      "n": 30,
+      "mean_teds": 0.4703,
+      "mean_teds_s": 0.5801,
+      "mean_cell_f1": 0.1343,
+      "n_missing": 0,
+      "has_text_gt": true,
+      "link": "https://huggingface.co/datasets/docling-project/FinTabNet_OTSL",
+      "license": "Original FinTabNet: CDLA-Permissive-1.0. OTSL conversion on HF is tagged license=other.",
+      "domain": "financial reports / SEC-style tables",
+      "real_or_degraded": "real digital-born financial PDF table crops (not photos)",
+      "timing": {},
+      "gap_to_0.99_teds": 0.5197
+    },
+    {
+      "dataset": "icdar2013",
+      "n": 30,
+      "mean_teds": 0.3192,
+      "mean_teds_s": 0.4493,
+      "mean_cell_f1": 0.0737,
+      "n_missing": 0,
+      "has_text_gt": true,
+      "link": "https://huggingface.co/datasets/bsmock/ICDAR-2013.c",
+      "license": "CDLA-Permissive-2.0 for this corrected release; original documents are described as public-domain (EU/US government)",
+      "domain": "scanned / born-digital official government reports (EU and US)",
+      "real_or_degraded": "real scanned or official documents; not synthetic",
+      "timing": {},
+      "gap_to_0.99_teds": 0.6708
+    },
+    {
+      "dataset": "icdar2019_ctdar",
+      "n": 18,
+      "mean_teds": 0.2356,
+      "mean_teds_s": 0.2458,
+      "mean_cell_f1": 0.1181,
+      "n_missing": 0,
+      "has_text_gt": false,
+      "link": "https://github.com/cndplab-founder/ICDAR2019_cTDaR",
+      "license": "Not clearly permissive. The official site says “© PKU Founder Group 2019. All Rights Reserved.” Used here only as a small local evaluation sample; not redistributed.",
+      "domain": "historical / archival document images (often degraded, handwritten or old print)",
+      "real_or_degraded": "real degraded archival scans/photos; cropped to the annotated table region",
+      "timing": {},
+      "gap_to_0.99_teds": 0.7544
+    },
+    {
+      "dataset": "pubtabnet",
+      "n": 30,
+      "mean_teds": 0.259,
+      "mean_teds_s": 0.4548,
+      "mean_cell_f1": 0.0675,
+      "n_missing": 0,
+      "has_text_gt": true,
+      "link": "https://huggingface.co/datasets/docling-project/PubTabNet_OTSL",
+      "license": "Original PubTabNet: CDLA-Sharing-1.0. OTSL conversion on HF is tagged license=other.",
+      "domain": "scientific journal tables from PubMed Central OA",
+      "real_or_degraded": "real digital-born PDF table crops (clean renders, not camera photos)",
+      "timing": {},
+      "gap_to_0.99_teds": 0.731
+    },
+    {
+      "dataset": "scitsr_pd",
+      "n": 30,
+      "mean_teds": 0.5166,
+      "mean_teds_s": 0.6529,
+      "mean_cell_f1": 0.1756,
+      "n_missing": 0,
+      "has_text_gt": true,
+      "link": "https://huggingface.co/datasets/bevaya/SciTSR-pd",
+      "license": "CC0-1.0 (subset of papers with CC0 / public-domain dedication)",
+      "domain": "scientific tables rendered from arXiv LaTeX/PDF",
+      "real_or_degraded": "real digital-born scientific tables (PDF renders, not photos)",
+      "timing": {},
+      "gap_to_0.99_teds": 0.4734
+    }
+  ],
+  "n_at_or_above_99": 0
+}

@@ -9,9 +9,13 @@ below at "TableSalt — Robust Table Recognition".
 | Tesseract floor (organizer) | 0.348 | – | – |
 | **our pipeline** | **0.9971** | **0.9931** | builds from repo root, runs with `--network none`, 4 s for 24 tables on 8 CPUs |
 
+On **real** public tables (SciTSR-PD, FinTabNet, ICDAR-2013.c, PubTabNet) the same pipeline gets
+only **0.26–0.52 TEDS**, so it is specialised to the challenge generator. The 0.99-on-real-data
+goal is open: [eval/real/](eval/real/), ADR-017.
+
 **Where to look (10 minutes):**
 
-1. [challenge/DECISIONS.md](challenge/DECISIONS.md): 16 ADRs. They cover what we chose, what we
+1. [challenge/DECISIONS.md](challenge/DECISIONS.md): 17 ADRs. They cover what we chose, what we
    measured and dropped (22 VLMs, TATR, a teammate pipeline), and what we planned but did not
    build (OCR routing, auto-research loop).
 2. [challenge/MEASUREMENTS.md](challenge/MEASUREMENTS.md) and [docs/RESULTS.md](docs/RESULTS.md):
@@ -43,6 +47,7 @@ ruff check . && ruff format --check .                   # config in pyproject.to
 | Path | What | Status |
 |---|---|---|
 | `tablesalt/`, `submission_template/` | the submission | shipped |
+| `eval/real/` | external real-data evaluation (scripts + summary; data git-ignored) | eval |
 | `tests/`, `tools/` | tests; eval, debug overlay, worst tables, gallery | dev tooling |
 | `challenge/`, `docs/`, `agent.md` | problem, plan, ADRs, measurements, build instructions | docs |
 | `pipeline/`, `registry/`, `scripts/`, `compose.yaml`, `experiments/vlm_scripts/` | VLM benchmark board (22 models, MLX on a Mac), ADR-004 | experiment, not shipped |
