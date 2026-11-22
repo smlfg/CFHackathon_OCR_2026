@@ -5,6 +5,7 @@
 
 --cells prints the differing cells (gt vs. prediction) of each worst table.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -23,11 +24,16 @@ def load(name: str):
 
 
 def cell_diff(gt_dir: Path, pred_dir: Path, tid: str) -> list[str]:
-    gt = {(c["r"], c["c"]): c for c in json.loads(
-        (gt_dir / tid / "gt" / "cells.json").read_text(encoding="utf-8"))}
+    gt = {
+        (c["r"], c["c"]): c
+        for c in json.loads((gt_dir / tid / "gt" / "cells.json").read_text(encoding="utf-8"))
+    }
     pp = pred_dir / f"{tid}.json"
-    pr = {(c["r"], c["c"]): c for c in json.loads(pp.read_text(encoding="utf-8"))} \
-        if pp.exists() else {}
+    pr = (
+        {(c["r"], c["c"]): c for c in json.loads(pp.read_text(encoding="utf-8"))}
+        if pp.exists()
+        else {}
+    )
     out = []
     for k in sorted(set(gt) | set(pr)):
         g, p = gt.get(k), pr.get(k)
@@ -52,10 +58,11 @@ def main() -> None:
     for e in manifest:
         g = (gt / e["id"] / "gt" / "table.html").read_text(encoding="utf-8")
         p = ev.load_prediction(pred, e["id"])
-        rows.append(dict(e, teds=ev.teds(g, p) if p else 0.0,
-                         teds_s=ev.teds(g, p, True) if p else 0.0))
+        rows.append(
+            dict(e, teds=ev.teds(g, p) if p else 0.0, teds_s=ev.teds(g, p, True) if p else 0.0)
+        )
     for tier in ("T0", "T1", "T2", "T3"):
-        worst = sorted((r for r in rows if r["tier"] == tier), key=lambda r: r["teds"])[:a.n]
+        worst = sorted((r for r in rows if r["tier"] == tier), key=lambda r: r["teds"])[: a.n]
         print(f"\n== {tier} worst ==")
         for r in worst:
             print(f"  {r['id']} {r['style']:10s} TEDS {r['teds']:.3f}  TEDS-S {r['teds_s']:.3f}")
@@ -67,8 +74,10 @@ def main() -> None:
         for q in json.loads((gt / e["id"] / "gt" / "qa.json").read_text(encoding="utf-8")):
             ans = qa.auto_answer(q, grid)
             if not qa.grade_one(q, ans):
-                print(f"  {e['id']} {e['tier']} {e['style']:10s} {q['type']:9s} "
-                      f"want {q['answer']!r} got {ans!r}  | {q['question'][:70]}")
+                print(
+                    f"  {e['id']} {e['tier']} {e['style']:10s} {q['type']:9s} "
+                    f"want {q['answer']!r} got {ans!r}  | {q['question'][:70]}"
+                )
 
 
 if __name__ == "__main__":

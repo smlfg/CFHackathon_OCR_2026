@@ -4,6 +4,7 @@ Numbers are rebuilt from their digits: the generator prints en/de with exactly 2
 and ``int`` without, so once the table's format is known (majority vote over the cells read
 well) every value is re-printed canonically - this repairs lost / swapped separators.
 """
+
 from __future__ import annotations
 
 import re
@@ -14,23 +15,60 @@ from . import lexicon as lx
 from .config import CFG, Config
 from .types import Cell
 
-DIGIT_FIX = str.maketrans({"O": "0", "o": "0", "D": "0", "Q": "0", "l": "1", "I": "1",
-                           "|": "1", "i": "1", "!": "1", "S": "5", "s": "5", "B": "8",
-                           "Z": "2", "z": "2", "G": "6", "g": "9", "q": "9", "A": "4",
-                           "T": "7"})
+DIGIT_FIX = str.maketrans(
+    {
+        "O": "0",
+        "o": "0",
+        "D": "0",
+        "Q": "0",
+        "l": "1",
+        "I": "1",
+        "|": "1",
+        "i": "1",
+        "!": "1",
+        "S": "5",
+        "s": "5",
+        "B": "8",
+        "Z": "2",
+        "z": "2",
+        "G": "6",
+        "g": "9",
+        "q": "9",
+        "A": "4",
+        "T": "7",
+    }
+)
 DASHES = "-–—−~_="
-UNIT_ALIASES = {"%": "%", "°/o": "%", "o/o": "%", "€": "€", "e": "€", "c": "€", "ε": "€",
-                "kg": "kg", "kq": "kg", "k9": "kg", "kgs": "kg", "ka": "kg", "ko": "kg",
-                "ms": "ms", "rns": "ms", "mss": "ms", "m5": "ms", "ns": "ms", "rn5": "ms"}
+UNIT_ALIASES = {
+    "%": "%",
+    "°/o": "%",
+    "o/o": "%",
+    "€": "€",
+    "e": "€",
+    "c": "€",
+    "ε": "€",
+    "kg": "kg",
+    "kq": "kg",
+    "k9": "kg",
+    "kgs": "kg",
+    "ka": "kg",
+    "ko": "kg",
+    "ms": "ms",
+    "rns": "ms",
+    "mss": "ms",
+    "m5": "ms",
+    "ns": "ms",
+    "rn5": "ms",
+}
 
 
 @dataclass
 class Num:
     neg: bool
     digits: str
-    dec_sep: str | None          # "." / "," if the text ends in <sep><2 digits>
-    group_seps: str              # separators seen between digit groups
-    unit: str | None             # raw unit token
+    dec_sep: str | None  # "." / "," if the text ends in <sep><2 digits>
+    group_seps: str  # separators seen between digit groups
+    unit: str | None  # raw unit token
     parens: bool
     minus: bool
 
@@ -45,8 +83,9 @@ def parse(text: str) -> Num | None:
         # no digit at all: only accept if (almost) every character is a look-alike digit
         t2 = t.translate(DIGIT_FIX)
         core = [ch for ch in t2 if not ch.isspace()]
-        if sum(ch.isdigit() for ch in t2) < 3 or \
-                sum(ch.isdigit() or ch in ".,()-" for ch in core) < 0.8 * len(core):
+        if sum(ch.isdigit() for ch in t2) < 3 or sum(
+            ch.isdigit() or ch in ".,()-" for ch in core
+        ) < 0.8 * len(core):
             return None
         t = t2
     # split off a trailing unit: letters / symbols after the last digit or ')'
@@ -55,10 +94,12 @@ def parse(text: str) -> Num | None:
     head = t[: len(t) - len(tail)] if tail else t
     unit = tail.strip() or None
     # inside the number, letters are misread digits
-    head = re.sub(r"(?<=[\d.,\s])[OoDQlIi|!SBZzG](?=[\d.,\s]|$)",
-                  lambda mm: mm.group(0).translate(DIGIT_FIX), head)
-    head = re.sub(r"^[OoDQlIi|!SBZzG](?=[\d.,])",
-                  lambda mm: mm.group(0).translate(DIGIT_FIX), head)
+    head = re.sub(
+        r"(?<=[\d.,\s])[OoDQlIi|!SBZzG](?=[\d.,\s]|$)",
+        lambda mm: mm.group(0).translate(DIGIT_FIX),
+        head,
+    )
+    head = re.sub(r"^[OoDQlIi|!SBZzG](?=[\d.,])", lambda mm: mm.group(0).translate(DIGIT_FIX), head)
     digits = "".join(ch for ch in head if ch.isdigit())
     if len(digits) < 2:
         return None
@@ -71,16 +112,23 @@ def parse(text: str) -> Num | None:
     dec_sep = dm.group(1) if dm else None
     body = core_s[: dm.start()] if dm else core_s
     group_seps = "".join(ch for ch in body if ch in ".,' " and True)
-    return Num(neg=parens or minus, digits=digits, dec_sep=dec_sep, group_seps=group_seps,
-               unit=unit, parens=parens, minus=minus)
+    return Num(
+        neg=parens or minus,
+        digits=digits,
+        dec_sep=dec_sep,
+        group_seps=group_seps,
+        unit=unit,
+        parens=parens,
+        minus=minus,
+    )
 
 
 @dataclass
 class Fmt:
-    style: str = "en"            # en / de / int
+    style: str = "en"  # en / de / int
     int_sep: str = ","
     parens: bool = False
-    unit: str = ""               # table unit without leading space ("" = none)
+    unit: str = ""  # table unit without leading space ("" = none)
 
 
 def detect_format(nums: list[Num]) -> Fmt:
@@ -192,16 +240,19 @@ def plausible(n: Num, f: Fmt) -> bool:
     -9999 .. 99999, en/de always 2 decimals)."""
     if f.style in ("en", "de"):
         want = "." if f.style == "en" else ","
-        return 3 <= len(n.digits) <= 7 and n.dec_sep in (want, None) and \
-            len(n.digits.lstrip("0")) <= 7
+        return (
+            3 <= len(n.digits) <= 7 and n.dec_sep in (want, None) and len(n.digits.lstrip("0")) <= 7
+        )
     return 1 <= len(n.digits) <= 5 and n.dec_sep is None
 
 
-def choose_reads(cells: list[Cell], hr: int, cands: list[list[tuple[str, float]]],
-                 blob_x: list[int]) -> None:
+def choose_reads(
+    cells: list[Cell], hr: int, cands: list[list[tuple[str, float]]], blob_x: list[int]
+) -> None:
     """Pick one OCR read per cell.  Labels: the read closest to the vocabulary of the
     cell's role.  Body values: the read that parses as a plausible number in the table's
     format, highest confidence first."""
+
     def joined(c: Cell, k: int) -> tuple[str, float]:
         ids = sorted(c.blobs, key=lambda i: blob_x[i])
         parts = [cands[i][k] for i in ids]
@@ -214,7 +265,7 @@ def choose_reads(cells: list[Cell], hr: int, cands: list[list[tuple[str, float]]
     for c in cells:
         if not c.blobs or n_var == 0:
             continue
-        if c.text in (lx.EN_DASH, lx.EM_DASH):       # decided by blob shape in spans
+        if c.text in (lx.EN_DASH, lx.EM_DASH):  # decided by blob shape in spans
             continue
         opts = [joined(c, k) for k in range(n_var)]
         vocab = role_vocab(c, hr)
@@ -240,9 +291,14 @@ def choose_reads(cells: list[Cell], hr: int, cands: list[list[tuple[str, float]]
             c.text = max(votes.values(), key=lambda v: (v[0], v[1]))[2][0]
 
 
-def fix_table(cells: list[Cell], hr: int, n_cols: int, cfg: Config = CFG,
-              cands: list[list[tuple[str, float]]] | None = None,
-              blob_x: list[int] | None = None) -> list[Cell]:
+def fix_table(
+    cells: list[Cell],
+    hr: int,
+    n_cols: int,
+    cfg: Config = CFG,
+    cands: list[list[tuple[str, float]]] | None = None,
+    blob_x: list[int] | None = None,
+) -> list[Cell]:
     if cands is not None and blob_x is not None:
         choose_reads(cells, hr, cands, blob_x)
     by_pos = {(c.r, c.c): c for c in cells}
@@ -253,8 +309,11 @@ def fix_table(cells: list[Cell], hr: int, n_cols: int, cfg: Config = CFG,
     k, s = lx.choose_pool(hdr_texts, lx.COL_POOLS)
     if k >= 0 and s >= cfg.label_min_score:
         pool = lx.COL_POOLS[k]
-        agree = sum(1 for j, t in enumerate(hdr_texts)
-                    if lx.norm(t) and j < len(pool) and lx.best(t, pool)[0] == pool[j])
+        agree = sum(
+            1
+            for j, t in enumerate(hdr_texts)
+            if lx.norm(t) and j < len(pool) and lx.best(t, pool)[0] == pool[j]
+        )
         nonempty = sum(1 for t in hdr_texts if lx.norm(t))
         if n_cols - 1 <= len(pool) and nonempty and agree >= cfg.pool_min_share * nonempty:
             for j, h in enumerate(hdr):
@@ -288,8 +347,9 @@ def fix_table(cells: list[Cell], hr: int, n_cols: int, cfg: Config = CFG,
     k, s = lx.choose_pool([c.text for c in labels], lx.ROW_POOLS)
     if k >= 0 and s >= cfg.label_min_score:
         # pool is certain: every label is one of its 15 entries, so snap even weak reads
-        snapped = lx.assign_unique([c.text for c in labels], lx.ROW_POOLS[k],
-                                   cfg.row_label_min_score)
+        snapped = lx.assign_unique(
+            [c.text for c in labels], lx.ROW_POOLS[k], cfg.row_label_min_score
+        )
         for c, sn in zip(labels, snapped):
             if sn is not None:
                 c.text = sn
@@ -311,7 +371,7 @@ def fix_table(cells: list[Cell], hr: int, n_cols: int, cfg: Config = CFG,
     fmt = detect_format([n for _, n in parsed.values()])
     for c, n in parsed.values():
         if c.neg_hint and not fmt.parens:
-            n.neg = True                    # geometry saw a minus Tesseract dropped
+            n.neg = True  # geometry saw a minus Tesseract dropped
         c.text = render(n, fmt)
     return cells
 

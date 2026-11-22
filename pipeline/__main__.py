@@ -1,16 +1,16 @@
 """CLI.
 
-    python -m pipeline registry build
-    python -m pipeline list
-    python -m pipeline run --all --dataset dev
-    python -m pipeline run --model paddleocr-vl --model lighton-ocr-3-0.8b --dataset dev
-    python -m pipeline board
-    python -m pipeline status
+python -m pipeline registry build
+python -m pipeline list
+python -m pipeline run --all --dataset dev
+python -m pipeline run --model paddleocr-vl --model lighton-ocr-3-0.8b --dataset dev
+python -m pipeline board
+python -m pipeline status
 """
+
 from __future__ import annotations
 
 import argparse
-import sys
 
 from . import board, config, dataset, providers, registry, runner, score, store
 
@@ -21,9 +21,13 @@ def _select(models: list[dict], wanted: list[str] | None, everything: bool) -> l
     picked = []
     for needle in wanted:
         needle = needle.lower()
-        hits = [m for m in models
-                if m["id"].lower() == needle or needle in m["id"].lower()
-                or needle in m.get("name", "").lower()]
+        hits = [
+            m
+            for m in models
+            if m["id"].lower() == needle
+            or needle in m["id"].lower()
+            or needle in m.get("name", "").lower()
+        ]
         if not hits:
             raise SystemExit(f"no model matches '{needle}' (see `python -m pipeline list`)")
         for hit in hits:
@@ -37,9 +41,12 @@ def cmd_registry(args) -> None:
     print(f"[registry] {payload['counts']} -> {config.MODELS_YAML}")
     for model in payload["models"]:
         mark = {"ready": "ok  ", "no_runtime": "skip", "repo_missing": "miss"}.get(
-            model["status"], "?")
-        print(f"  [{mark}] {model['id']:28s} {model['params_b']:>5.2f}B  "
-              f"{model.get('hf_repo') or '—'}")
+            model["status"], "?"
+        )
+        print(
+            f"  [{mark}] {model['id']:28s} {model['params_b']:>5.2f}B  "
+            f"{model.get('hf_repo') or '—'}"
+        )
 
 
 def cmd_list(args) -> None:
@@ -48,8 +55,10 @@ def cmd_list(args) -> None:
     for model in data["models"]:
         if args.status and model["status"] != args.status:
             continue
-        print(f"{model['status']:12s} {model['id']:28s} {model['params_b']:>5.2f}B "
-              f"{(model.get('quant') or '–'):5s} {model.get('fmt'):8s} {model.get('hf_repo','')}")
+        print(
+            f"{model['status']:12s} {model['id']:28s} {model['params_b']:>5.2f}B "
+            f"{(model.get('quant') or '–'):5s} {model.get('fmt'):8s} {model.get('hf_repo', '')}"
+        )
 
 
 def cmd_run(args) -> None:
@@ -68,19 +77,27 @@ def cmd_run(args) -> None:
         if not provider.healthy():
             raise SystemExit(
                 f"{runtime} endpoint not reachable ({provider.base_url}).\n"
-                + ("start scripts/mlx_server.py on the host, e.g.\n"
-                   "  uv run --with mlx-vlm --with fastapi --with uvicorn "
-                   "python scripts/mlx_server.py --port 8099\n"
-                   if runtime == "mlx" else
-                   "start Ollama, e.g. `ollama serve`\n"))
+                + (
+                    "start scripts/mlx_server.py on the host, e.g.\n"
+                    "  uv run --with mlx-vlm --with fastapi --with uvicorn "
+                    "python scripts/mlx_server.py --port 8099\n"
+                    if runtime == "mlx"
+                    else "start Ollama, e.g. `ollama serve`\n"
+                )
+            )
 
-    print(f"[run] {len(selected)} model(s) on {ds.name}: "
-          f"{', '.join(m['id'] for m in selected)}\n", flush=True)
+    print(
+        f"[run] {len(selected)} model(s) on {ds.name}: {', '.join(m['id'] for m in selected)}\n",
+        flush=True,
+    )
 
     for model in selected:
         print(f"=== {model['id']} ({model.get('name')}, {model['params_b']}B)", flush=True)
-        if store.has(model["id"], ds.name, runner.prompt_hash(model["prompt"])) \
-                and not args.force and not args.rescore:
+        if (
+            store.has(model["id"], ds.name, runner.prompt_hash(model["prompt"]))
+            and not args.force
+            and not args.rescore
+        ):
             print("  already scored (use --force to re-run)\n", flush=True)
             continue
         if args.rescore:
@@ -92,9 +109,17 @@ def cmd_run(args) -> None:
             ok, need, free = runner.disk_check(model)
             if not ok:
                 print(f"  SKIP: needs {need:.1f} GB, {free:.1f} GB free", flush=True)
-                run = runner.collect(model, ds, converted={"tables": 0, "missing": 0,
-                                                           "cells": 0, "median_cells": 0,
-                                                           "empty_rate": 0.0})
+                run = runner.collect(
+                    model,
+                    ds,
+                    converted={
+                        "tables": 0,
+                        "missing": 0,
+                        "cells": 0,
+                        "median_cells": 0,
+                        "empty_rate": 0.0,
+                    },
+                )
                 run["status"] = "no_space"
                 run["meta"]["note"] = f"needs {need:.1f} GB, {free:.1f} GB free"
                 store.save(run, [])
@@ -103,7 +128,9 @@ def cmd_run(args) -> None:
                 run = runner.run(model, ds, force=args.force, limit=args.limit)
             except providers.ProviderError as exc:
                 print(f"  ERROR: {exc}\n", flush=True)
-                failed_run = runner.collect(model, ds) if (config.RAW / model["id"]).exists() else None
+                failed_run = (
+                    runner.collect(model, ds) if (config.RAW / model["id"]).exists() else None
+                )
                 if failed_run is not None:
                     failed_run["status"] = "load_error"
                     failed_run["meta"]["note"] = str(exc)[:400]
@@ -114,13 +141,18 @@ def cmd_run(args) -> None:
 
         aggregate, tables = score.score(ds.path, config.PRED / model["id"])
         run.update(aggregate)
-        run["status"] = "error" if aggregate["empty_tables"] == aggregate["n_tables"] else run["status"]
+        run["status"] = (
+            "error" if aggregate["empty_tables"] == aggregate["n_tables"] else run["status"]
+        )
         store.save(run, tables)
         board.render(ds.name)
-        print(f"  FINAL {run['final']:.4f}  TEDS {run['teds_weighted']:.4f}  "
-              f"QA {run['qa_accuracy']:.4f}  CellF1 {run['cell_f1']:.4f}  "
-              f"{run['s_per_table'] or 0:.1f}s/table"
-              + (f"  [{run['adapter_flag']}]" if run["adapter_flag"] else ""), flush=True)
+        print(
+            f"  FINAL {run['final']:.4f}  TEDS {run['teds_weighted']:.4f}  "
+            f"QA {run['qa_accuracy']:.4f}  CellF1 {run['cell_f1']:.4f}  "
+            f"{run['s_per_table'] or 0:.1f}s/table"
+            + (f"  [{run['adapter_flag']}]" if run["adapter_flag"] else ""),
+            flush=True,
+        )
 
         if not args.keep_model:
             _prune(model)
@@ -151,8 +183,7 @@ def cmd_status(args) -> None:
     print(f"registry: {data['counts']} (built {data['generated']})")
     for runtime in ("mlx", "ollama"):
         provider = providers.get(runtime)
-        print(f"{runtime:7s} {provider.base_url:32s} "
-              f"{'up' if provider.healthy() else 'DOWN'}")
+        print(f"{runtime:7s} {provider.base_url:32s} {'up' if provider.healthy() else 'DOWN'}")
     for name in ("dev", "val"):
         path = config.dataset_dir(name)
         if path.exists():
@@ -162,16 +193,19 @@ def cmd_status(args) -> None:
     if rows:
         print(f"\n{'model':28s} {'set':4s} {'FINAL':>6s} {'TEDS':>6s} {'QA':>6s} {'s/tab':>6s}")
         for row in rows:
-            print(f"{row['model_id']:28s} {row['dataset']:4s} {row['final'] or 0:6.4f} "
-                  f"{row['teds_weighted'] or 0:6.4f} {row['qa_accuracy'] or 0:6.4f} "
-                  f"{(row['s_per_table'] or 0):6.1f}")
+            print(
+                f"{row['model_id']:28s} {row['dataset']:4s} {row['final'] or 0:6.4f} "
+                f"{row['teds_weighted'] or 0:6.4f} {row['qa_accuracy'] or 0:6.4f} "
+                f"{(row['s_per_table'] or 0):6.1f}"
+            )
     else:
         print("\nno runs yet")
 
 
 def main(argv: list[str] | None = None) -> None:
-    parser = argparse.ArgumentParser(prog="pipeline", description=__doc__,
-                                     formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser = argparse.ArgumentParser(
+        prog="pipeline", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     reg = sub.add_parser("registry", help="build or inspect the model registry")
@@ -190,9 +224,14 @@ def main(argv: list[str] | None = None) -> None:
     run.add_argument("--dataset", default="dev")
     run.add_argument("--limit", type=int, default=None, help="first N tables only")
     run.add_argument("--force", action="store_true", help="re-run and re-score")
-    run.add_argument("--keep-model", action="store_true", help="do not delete weights after scoring")
-    run.add_argument("--rescore", action="store_true",
-                     help="re-convert and re-score existing raw output, no inference")
+    run.add_argument(
+        "--keep-model", action="store_true", help="do not delete weights after scoring"
+    )
+    run.add_argument(
+        "--rescore",
+        action="store_true",
+        help="re-convert and re-score existing raw output, no inference",
+    )
     run.add_argument("--generate", action="store_true", help="generate the dataset if missing")
     run.add_argument("--n", type=int, default=240)
     run.add_argument("--seed", type=int, default=2)

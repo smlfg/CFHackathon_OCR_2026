@@ -5,6 +5,7 @@ height becomes ``ocr_cap_height`` and padded white.  All crops of one table go t
 Tesseract process via a list file (``tesseract list.txt stdout tsv``): this avoids ~100
 process starts per table.  ``page_num`` in the TSV maps the words back to their crop.
 """
+
 from __future__ import annotations
 
 import csv
@@ -23,8 +24,9 @@ from .config import CFG, Config
 from .types import Blob
 
 
-def crop_blob(gray: np.ndarray, b: Blob, h: float, cfg: Config = CFG,
-              rules_mask: np.ndarray | None = None) -> np.ndarray:
+def crop_blob(
+    gray: np.ndarray, b: Blob, h: float, cfg: Config = CFG, rules_mask: np.ndarray | None = None
+) -> np.ndarray:
     m = cfg.ocr_margin
     y0, y1 = max(0, b.y0 - m), min(gray.shape[0], b.y1 + m)
     x0, x1 = max(0, b.x0 - m), min(gray.shape[1], b.x1 + m)
@@ -39,11 +41,12 @@ def crop_blob(gray: np.ndarray, b: Blob, h: float, cfg: Config = CFG,
     return cv2.copyMakeBorder(crop, p, p, p, p, cv2.BORDER_CONSTANT, value=255)
 
 
-TESS_ERRORS: list[str] = []   # per process; read by run.py
+TESS_ERRORS: list[str] = []  # per process; read by run.py
 
 
-def run_tesseract(images: list[np.ndarray], psm: int = 7, whitelist: str | None = None,
-                  cfg: Config = CFG) -> list[tuple[str, float]]:
+def run_tesseract(
+    images: list[np.ndarray], psm: int = 7, whitelist: str | None = None, cfg: Config = CFG
+) -> list[tuple[str, float]]:
     """OCR many small images in one Tesseract call -> [(text, mean word conf)]."""
     if not images:
         return []
@@ -65,9 +68,15 @@ def run_tesseract(images: list[np.ndarray], psm: int = 7, whitelist: str | None 
         out = res.stdout.decode("utf-8", errors="replace")
         if res.returncode != 0 or not out.strip():
             # make failures visible: they used to vanish and turn into empty cells
-            TESS_ERRORS.append(f"rc={res.returncode} {res.stderr.decode('utf-8', 'replace')[-300:]}")
+            TESS_ERRORS.append(
+                f"rc={res.returncode} {res.stderr.decode('utf-8', 'replace')[-300:]}"
+            )
             if len(TESS_ERRORS) <= 3:
-                print(f"[tesseract] {' '.join(cmd[2:])}: {TESS_ERRORS[-1]}", file=sys.stderr, flush=True)
+                print(
+                    f"[tesseract] {' '.join(cmd[2:])}: {TESS_ERRORS[-1]}",
+                    file=sys.stderr,
+                    flush=True,
+                )
     return parse_tsv(out, len(images))
 
 
@@ -86,8 +95,9 @@ def parse_tsv(tsv: str, n: int) -> list[tuple[str, float]]:
             continue
         page = int(row[col["page_num"]]) - 1
         if 0 <= page < n:
-            words[page].append((int(row[col["line_num"]]), int(row[col["left"]]), text,
-                                float(row[col["conf"]])))
+            words[page].append(
+                (int(row[col["line_num"]]), int(row[col["left"]]), text, float(row[col["conf"]]))
+            )
     out = []
     for ws in words:
         ws.sort(key=lambda w: (w[0], w[1]))
@@ -97,9 +107,13 @@ def parse_tsv(tsv: str, n: int) -> list[tuple[str, float]]:
     return out
 
 
-def read_variants(gray: np.ndarray, blobs: list[Blob], h: float,
-                  rules_mask: np.ndarray | None = None,
-                  cfg: Config = CFG) -> list[list[tuple[str, float]]]:
+def read_variants(
+    gray: np.ndarray,
+    blobs: list[Blob],
+    h: float,
+    rules_mask: np.ndarray | None = None,
+    cfg: Config = CFG,
+) -> list[list[tuple[str, float]]]:
     """Read every blob once per (margin, median) variant -> per blob a list of candidates.
     Different crops fail differently (a tight crop clips the flat top of a '5', a loose one
     picks up specks), so the caller chooses per cell role."""
@@ -112,15 +126,22 @@ def read_variants(gray: np.ndarray, blobs: list[Blob], h: float,
     if empty and cfg.rescue_variant:
         margin, median, psm = cfg.rescue_variant
         vcfg = replace(cfg, ocr_margin=margin, ocr_median=median, tess_psm=psm)
-        for i, r in zip(empty, read_blobs(gray, blobs, h, idx=empty, rules_mask=rules_mask,
-                                          cfg=vcfg)):
+        for i, r in zip(
+            empty, read_blobs(gray, blobs, h, idx=empty, rules_mask=rules_mask, cfg=vcfg)
+        ):
             cands[i] = [r] * len(cands[i])
     return cands
 
 
-def read_blobs(gray: np.ndarray, blobs: list[Blob], h: float, idx: list[int] | None = None,
-               whitelist: str | None = None, rules_mask: np.ndarray | None = None,
-               cfg: Config = CFG) -> list[tuple[str, float]]:
+def read_blobs(
+    gray: np.ndarray,
+    blobs: list[Blob],
+    h: float,
+    idx: list[int] | None = None,
+    whitelist: str | None = None,
+    rules_mask: np.ndarray | None = None,
+    cfg: Config = CFG,
+) -> list[tuple[str, float]]:
     """OCR the blobs with the given indices (default: all) -> [(text, conf)] in that order."""
     idx = list(range(len(blobs))) if idx is None else idx
     crops = [crop_blob(gray, blobs[i], h, cfg, rules_mask) for i in idx]

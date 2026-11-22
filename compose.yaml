@@ -12,6 +12,7 @@ services:
   eval:
     build:
       context: .
+      dockerfile: pipeline/Dockerfile
     image: tablesalt-eval:local
     working_dir: /app
     volumes:

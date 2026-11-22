@@ -9,6 +9,7 @@ Submission entrypoint contract:
 Runs the tablesalt pipeline (tablesalt/run.py); per table it falls back to the Tesseract
 floor baseline and at worst to an empty cell list, so every image gets a valid file.
 """
+
 import os
 import sys
 from pathlib import Path
@@ -22,7 +23,7 @@ from tablesalt.run import main  # noqa: E402
 def available_cpus() -> int:
     try:
         return len(os.sched_getaffinity(0))
-    except AttributeError:          # Windows / macOS
+    except AttributeError:  # Windows / macOS
         return os.cpu_count() or 1
 
 

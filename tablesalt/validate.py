@@ -1,4 +1,5 @@
 """Check a cell list: every (r, c) grid position covered exactly once, spans inside the grid."""
+
 from __future__ import annotations
 
 

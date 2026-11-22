@@ -2,6 +2,7 @@
 
 The lists are copied, not imported: the container must not depend on the generator file.
 """
+
 from __future__ import annotations
 
 import re
@@ -10,19 +11,74 @@ import unicodedata
 from rapidfuzz import fuzz
 
 ROW_POOLS = [
-    ["Revenue", "Cost of sales", "Gross profit", "Operating expenses", "EBITDA",
-     "Depreciation", "EBIT", "Interest expense", "Taxes", "Net income",
-     "Cash flow", "Capex", "Working capital", "Inventory", "Receivables"],
-    ["Umsatzerlöse", "Materialaufwand", "Rohertrag", "Personalaufwand",
-     "Abschreibungen", "Sonstige Kosten", "Betriebsergebnis", "Zinsaufwand",
-     "Steuern", "Jahresüberschuss", "Rückstellungen", "Verbindlichkeiten",
-     "Forderungen", "Vorräte", "Eigenkapital"],
-    ["Hydrogen", "Helium", "Lithium", "Carbon", "Nitrogen", "Oxygen",
-     "Sodium", "Magnesium", "Aluminium", "Silicon", "Phosphorus", "Sulfur",
-     "Chlorine", "Potassium", "Calcium"],
-    ["Baseline", "Variant A", "Variant B", "Variant C", "Ablation 1",
-     "Ablation 2", "Ablation 3", "Ours (small)", "Ours (base)", "Ours (large)",
-     "Prior SOTA", "Human", "Random", "Majority", "Oracle"],
+    [
+        "Revenue",
+        "Cost of sales",
+        "Gross profit",
+        "Operating expenses",
+        "EBITDA",
+        "Depreciation",
+        "EBIT",
+        "Interest expense",
+        "Taxes",
+        "Net income",
+        "Cash flow",
+        "Capex",
+        "Working capital",
+        "Inventory",
+        "Receivables",
+    ],
+    [
+        "Umsatzerlöse",
+        "Materialaufwand",
+        "Rohertrag",
+        "Personalaufwand",
+        "Abschreibungen",
+        "Sonstige Kosten",
+        "Betriebsergebnis",
+        "Zinsaufwand",
+        "Steuern",
+        "Jahresüberschuss",
+        "Rückstellungen",
+        "Verbindlichkeiten",
+        "Forderungen",
+        "Vorräte",
+        "Eigenkapital",
+    ],
+    [
+        "Hydrogen",
+        "Helium",
+        "Lithium",
+        "Carbon",
+        "Nitrogen",
+        "Oxygen",
+        "Sodium",
+        "Magnesium",
+        "Aluminium",
+        "Silicon",
+        "Phosphorus",
+        "Sulfur",
+        "Chlorine",
+        "Potassium",
+        "Calcium",
+    ],
+    [
+        "Baseline",
+        "Variant A",
+        "Variant B",
+        "Variant C",
+        "Ablation 1",
+        "Ablation 2",
+        "Ablation 3",
+        "Ours (small)",
+        "Ours (base)",
+        "Ours (large)",
+        "Prior SOTA",
+        "Human",
+        "Random",
+        "Majority",
+        "Oracle",
+    ],
 ]
 
 # column headers are always pool[:n_cols - 1] in this order (never repeated: <= 6 data cols)
@@ -35,11 +91,11 @@ COL_POOLS = [
 ]
 
 GROUP_NAMES = ["Actual", "Plan", "Delta", "Reported", "Adjusted"]
-STUB_NAMES = ["Position", "Item", "Metric"]          # or "" (empty)
-UNITS = ["%", "€", "kg", "ms"]                       # printed as " <unit>" after the number
-EN_DASH = "–"                                   # single empty-ish body cell
-EM_DASH = "—"                                   # merged body cell (cs=2)
-MERGE_TEXTS = ["n/a", EM_DASH, "see note 3"]          # merged body cells
+STUB_NAMES = ["Position", "Item", "Metric"]  # or "" (empty)
+UNITS = ["%", "€", "kg", "ms"]  # printed as " <unit>" after the number
+EN_DASH = "–"  # single empty-ish body cell
+EM_DASH = "—"  # merged body cell (cs=2)
+MERGE_TEXTS = ["n/a", EM_DASH, "see note 3"]  # merged body cells
 SINGLE_SPECIALS = [EN_DASH, "n/a", ""]
 
 
@@ -76,8 +132,7 @@ def choose_pool(texts: list[str], pools: list[list[str]]) -> tuple[int, float]:
 def assign_unique(texts: list[str], pool: list[str], min_score: float) -> list[str | None]:
     """Greedy one-to-one snapping of texts to pool entries (labels are sampled without
     replacement).  None where nothing is similar enough."""
-    pairs = sorted(((score(t, p), i, p) for i, t in enumerate(texts) for p in pool),
-                   reverse=True)
+    pairs = sorted(((score(t, p), i, p) for i, t in enumerate(texts) for p in pool), reverse=True)
     out: list[str | None] = [None] * len(texts)
     used: set[str] = set()
     for s, i, p in pairs:

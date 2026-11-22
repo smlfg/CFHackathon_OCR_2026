@@ -9,6 +9,7 @@
    last text row.  Their four intersections give a homography to a rectangle - for all three
    styles, with or without rules.
 """
+
 from __future__ import annotations
 
 import cv2
@@ -50,6 +51,7 @@ def despeckle(binary: np.ndarray, max_area: int) -> np.ndarray:
 # ----------------------------------------------------------------------------
 # deskew
 # ----------------------------------------------------------------------------
+
 
 def _profile_score(small: np.ndarray, angle: float) -> float:
     hh, ww = small.shape
@@ -96,6 +98,7 @@ def rotation_matrix(shape: tuple[int, int], angle: float) -> tuple[np.ndarray, t
 # perspective from text geometry
 # ----------------------------------------------------------------------------
 
+
 def _robust_line(u: np.ndarray, v: np.ndarray, tol: float, min_inliers: int):
     """Fit v = a*u + b robustly (all point pairs as RANSAC hypotheses). None if weak."""
     n = len(u)
@@ -121,21 +124,20 @@ def _aligned_right_edge(blobs, rows, tol: float, need: int):
     """Right-most straight line x = a*y + b that many rows' blobs end on (right-aligned
     numbers of one column).  Any column will do for the homography; the right-most one
     conditions it best.  None if no edge has `need` supporting rows."""
-    pts = [(st.row_center(blobs, r), blobs[i].x1, k)
-           for k, r in enumerate(rows) for i in r[1:]]
+    pts = [(st.row_center(blobs, r), blobs[i].x1, k) for k, r in enumerate(rows) for i in r[1:]]
     if len(pts) < 2:
         return None
     y = np.array([p[0] for p in pts])
     x = np.array([p[1] for p in pts], float)
     rid = np.array([p[2] for p in pts])
     n_rows = len(rows)
-    best = None                                     # ((support, mean x), inlier mask)
+    best = None  # ((support, mean x), inlier mask)
     for i in range(len(pts)):
         for j in range(i + 1, len(pts)):
             if abs(rid[j] - rid[i]) < max(2, n_rows // 3):
                 continue
             a = (x[j] - x[i]) / (y[j] - y[i])
-            if abs(a) > 0.15:                       # > ~8.5 deg off vertical: not an edge
+            if abs(a) > 0.15:  # > ~8.5 deg off vertical: not an edge
                 continue
             b = x[i] - a * y[i]
             inl = np.abs(x - (a * y + b)) <= tol
@@ -171,21 +173,24 @@ def text_quad(binary: np.ndarray, cfg: Config = CFG):
     left = _robust_line(ys, lx, tol, need)
     right = _aligned_right_edge(blobs, body, tol, need)
     full = [r for r in rows if len(r) >= 3] or rows
-    top = _robust_line(np.array([blobs[i].cx for i in full[0]]),
-                       np.array([blobs[i].cy for i in full[0]]), tol, 2)
-    bot = _robust_line(np.array([blobs[i].cx for i in full[-1]]),
-                       np.array([blobs[i].cy for i in full[-1]]), tol, 2)
+    top = _robust_line(
+        np.array([blobs[i].cx for i in full[0]]), np.array([blobs[i].cy for i in full[0]]), tol, 2
+    )
+    bot = _robust_line(
+        np.array([blobs[i].cx for i in full[-1]]), np.array([blobs[i].cy for i in full[-1]]), tol, 2
+    )
     if None in (left, right, top, bot):
         return None
 
-    def cross(hline, vline):          # y = a x + b  and  x = c y + d
+    def cross(hline, vline):  # y = a x + b  and  x = c y + d
         a, b = hline
         c, d = vline
         y = (a * d + b) / (1 - a * c)
         return np.array([c * y + d, y])
 
-    quad = np.array([cross(top, left), cross(top, right),
-                     cross(bot, right), cross(bot, left)], np.float32)
+    quad = np.array(
+        [cross(top, left), cross(top, right), cross(bot, right), cross(bot, left)], np.float32
+    )
     return quad, h
 
 

@@ -3,6 +3,7 @@
 Resumable: a table whose raw text already exists is skipped. The model stays
 loaded for the whole dataset and is released by the caller when scoring is done.
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -31,7 +32,8 @@ def remote_size_gb(repo: str) -> float:
     size = 0.0
     try:
         with urllib.request.urlopen(
-                f"https://huggingface.co/api/models/{repo}?blobs=true", timeout=30) as response:
+            f"https://huggingface.co/api/models/{repo}?blobs=true", timeout=30
+        ) as response:
             payload = json.loads(response.read().decode())
         size = sum(b.get("size") or 0 for b in payload.get("siblings", [])) / 1e9
     except (urllib.error.URLError, OSError, json.JSONDecodeError):
@@ -66,8 +68,14 @@ def preprocess(path: Path, max_edge: int) -> bytes:
     return buffer.getvalue()
 
 
-def run(model: dict, ds: dataset.Dataset, *, force: bool = False, limit: int | None = None,
-        jobs: int = 1) -> dict:
+def run(
+    model: dict,
+    ds: dataset.Dataset,
+    *,
+    force: bool = False,
+    limit: int | None = None,
+    jobs: int = 1,
+) -> dict:
     raw_dir = config.RAW / model["id"]
     raw_dir.mkdir(parents=True, exist_ok=True)
     provider = providers.get(model["runtime"])
@@ -93,14 +101,23 @@ def run(model: dict, ds: dataset.Dataset, *, force: bool = False, limit: int | N
             failed.append({"id": entry["id"], "error": str(exc)[:500]})
             continue
         target.write_text(text)
-        _merge_meta(raw_dir / "meta.json", {
-            "id": entry["id"], "tier": entry["tier"], "style": entry["style"],
-            "seconds": usage.get("seconds"), "prompt_tokens": usage.get("prompt_tokens", 0),
-            "generation_tokens": usage.get("completion_tokens", 0),
-            "chars": len(text),
-        })
-        print(f"  {entry['id']} {entry['tier']:<3} {usage.get('seconds', 0):6.2f}s "
-              f"{len(text):5d} chars", flush=True)
+        _merge_meta(
+            raw_dir / "meta.json",
+            {
+                "id": entry["id"],
+                "tier": entry["tier"],
+                "style": entry["style"],
+                "seconds": usage.get("seconds"),
+                "prompt_tokens": usage.get("prompt_tokens", 0),
+                "generation_tokens": usage.get("completion_tokens", 0),
+                "chars": len(text),
+            },
+        )
+        print(
+            f"  {entry['id']} {entry['tier']:<3} {usage.get('seconds', 0):6.2f}s "
+            f"{len(text):5d} chars",
+            flush=True,
+        )
 
     if failed:
         (raw_dir / "failures.json").write_text(json.dumps(failed, indent=1))
@@ -108,12 +125,20 @@ def run(model: dict, ds: dataset.Dataset, *, force: bool = False, limit: int | N
     pred_dir = config.PRED / model["id"]
     pred_dir.mkdir(parents=True, exist_ok=True)
     converted = _convert_all(model, raw_dir, pred_dir)
-    return collect(model, ds, converted=converted, loaded=loaded,
-                   n_run=len(done), n_failed=len(failed))
+    return collect(
+        model, ds, converted=converted, loaded=loaded, n_run=len(done), n_failed=len(failed)
+    )
 
 
-def collect(model: dict, ds: dataset.Dataset, *, converted: dict | None = None,
-            loaded: dict | None = None, n_run: int = 0, n_failed: int = 0) -> dict:
+def collect(
+    model: dict,
+    ds: dataset.Dataset,
+    *,
+    converted: dict | None = None,
+    loaded: dict | None = None,
+    n_run: int = 0,
+    n_failed: int = 0,
+) -> dict:
     """Build the run row from whatever is already on disk (no inference)."""
     raw_dir = config.RAW / model["id"]
     pred_dir = config.PRED / model["id"]
@@ -128,8 +153,9 @@ def collect(model: dict, ds: dataset.Dataset, *, converted: dict | None = None,
 
     empty_tables = converted["missing"]
     adapter_flag = ""
-    if converted["tables"] and (empty_tables / converted["tables"] > config.MAX_EMPTY_RATE
-                                or converted["median_cells"] < 2):
+    if converted["tables"] and (
+        empty_tables / converted["tables"] > config.MAX_EMPTY_RATE or converted["median_cells"] < 2
+    ):
         adapter_flag = "ADAPTER_SUSPECT"
 
     return {
@@ -150,14 +176,20 @@ def collect(model: dict, ds: dataset.Dataset, *, converted: dict | None = None,
         "adapter_flag": adapter_flag,
         "status": "ok" if not n_failed else f"{n_failed} failed",
         "load_seconds": (loaded or {}).get("seconds"),
-        "meta": {"converted": converted, "tables_run": n_run, "failed": n_failed,
-                 "max_edge": model.get("max_edge"), "fmt": model.get("fmt"),
-                 "prompt": model["prompt"]},
+        "meta": {
+            "converted": converted,
+            "tables_run": n_run,
+            "failed": n_failed,
+            "max_edge": model.get("max_edge"),
+            "fmt": model.get("fmt"),
+            "prompt": model["prompt"],
+        },
     }
 
 
 def store_run_id(model: dict, dataset_name: str) -> str:
     from .store import run_id
+
     return run_id(model, dataset_name, prompt_hash(model["prompt"]))
 
 

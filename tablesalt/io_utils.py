@@ -1,4 +1,5 @@
-"""Image loading and atomic JSON writing."""
+"""Input discovery and decoding (images and PDFs) and atomic JSON writing."""
+
 from __future__ import annotations
 
 import json
@@ -9,7 +10,12 @@ from pathlib import Path
 import cv2
 import numpy as np
 
-IMAGE_EXTS = (".png", ".jpg", ".jpeg")
+RASTER_EXTS = (".png", ".jpg", ".jpeg", ".tif", ".tiff", ".bmp", ".webp")
+PDF_EXTS = (".pdf",)
+# The contract promises .png/.jpg; the kick-off said "PDF files or PNG files" may appear, so we
+# accept a few more raster formats and PDFs instead of silently skipping them (ADR-009).
+IMAGE_EXTS = RASTER_EXTS + PDF_EXTS
+PDF_DPI = 200  # first page only; 200 dpi puts 10-12 pt table text near the generator's 20 px font
 
 
 def load_gray(path: Path) -> np.ndarray:
@@ -21,9 +27,34 @@ def load_gray(path: Path) -> np.ndarray:
     return img
 
 
+def is_pdf(path: Path) -> bool:
+    return Path(path).suffix.lower() in PDF_EXTS
+
+
+def render_pdf_page(path: Path, out_png: Path, dpi: int = PDF_DPI) -> Path:
+    """Render the first page of a PDF to a PNG file and return its path.
+
+    pypdfium2 is a self-contained wheel (no system libraries), so this works offline in the
+    slim container.  Multi-page PDFs: only page 1 is read - the contract is one table per file.
+    """
+    import pypdfium2 as pdfium  # local import: only needed when a PDF actually shows up
+
+    pdf = pdfium.PdfDocument(str(path))
+    try:
+        if len(pdf) == 0:
+            raise ValueError(f"PDF without pages: {path}")
+        bitmap = pdf[0].render(scale=dpi / 72)
+        bitmap.to_pil().convert("RGB").save(out_png)
+    finally:
+        pdf.close()
+    return Path(out_png)
+
+
 def list_images(folder: Path) -> list[Path]:
-    return sorted(p for p in Path(folder).iterdir()
-                  if p.is_file() and p.suffix.lower() in IMAGE_EXTS)
+    """All table inputs in ``folder`` (flat, sorted by name)."""
+    return sorted(
+        p for p in Path(folder).iterdir() if p.is_file() and p.suffix.lower() in IMAGE_EXTS
+    )
 
 
 def write_json_atomic(path: Path, obj) -> None:

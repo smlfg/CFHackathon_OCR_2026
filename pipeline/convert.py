@@ -11,6 +11,7 @@ Formats
     html      dots.ocr, Nanonets, most general VLMs
     auto      try html, then otsl, then markdown
 """
+
 from __future__ import annotations
 
 import html as htmllib
@@ -32,8 +33,7 @@ def otsl_to_cells(text: str) -> list[dict]:
         if tag == "nl":
             r, c = r + 1, 0
         elif tag in ("fcel", "ecel"):
-            cell = {"text": "" if tag == "ecel" else body.strip(), "r": r, "c": c,
-                    "rs": 1, "cs": 1}
+            cell = {"text": "" if tag == "ecel" else body.strip(), "r": r, "c": c, "rs": 1, "cs": 1}
             cells.append(cell)
             cover[(r, c)] = cell
             c += 1
@@ -73,7 +73,9 @@ def pipe_to_cells(text: str) -> list[dict]:
     return cells
 
 
-RULE = re.compile(r"\\(hline|toprule|midrule|bottomrule|cline\{[^}]*\}|cmidrule(\([^)]*\))?\{[^}]*\})")
+RULE = re.compile(
+    r"\\(hline|toprule|midrule|bottomrule|cline\{[^}]*\}|cmidrule(\([^)]*\))?\{[^}]*\})"
+)
 
 
 def _clean_latex(text: str) -> str:
@@ -100,7 +102,7 @@ def latex_to_cells(text: str) -> list[dict]:
                     break
             i += 1
         stop = body.find("\\end{tabular}", i)
-        body = body[i + 1:stop if stop > 0 else len(body)]
+        body = body[i + 1 : stop if stop > 0 else len(body)]
     rows = re.split(r"\\\\", body)
     cells: list[dict] = []
     spans: dict[tuple[int, int], dict] = {}
@@ -148,7 +150,7 @@ def first_html_table(text: str) -> str | None:
     start = text.lower().find("<table")
     end = text.lower().rfind("</table>")
     if start >= 0 and end > start:
-        return text[start:end + len("</table>")]
+        return text[start : end + len("</table>")]
     return None
 
 
@@ -204,8 +206,12 @@ def convert(text: str, fmt: str = "auto") -> tuple[str, dict]:
 
     cells = parser(text or "")
     if fmt == "doctags" and len(cells) < 2 and tables:
-        return tables, {"fmt": "doctags", "cells": _count_html_cells(tables),
-                        "empty_rate": 0.0, "parser": "html-fallback"}
+        return tables, {
+            "fmt": "doctags",
+            "cells": _count_html_cells(tables),
+            "empty_rate": 0.0,
+            "parser": "html-fallback",
+        }
     return _finish(cells, tried)
 
 

@@ -5,6 +5,7 @@ words.  A horizontal dilation of ~0.85 h therefore turns each cell's text into e
 connected *blob*.  Rows are clusters of blob y-centres; columns are the empty vertical gaps
 in the body rows.  Works the same for grid, hlines and borderless once rules are removed.
 """
+
 from __future__ import annotations
 
 import cv2
@@ -14,10 +15,10 @@ from . import style as style_mod
 from .config import CFG, Config
 from .types import Blob, Grid, Layout
 
-
 # ----------------------------------------------------------------------------
 # text height and rules
 # ----------------------------------------------------------------------------
+
 
 def text_height(binary: np.ndarray) -> float:
     """Median height of character-sized components (~cap height of the body font)."""
@@ -41,14 +42,14 @@ def line_masks(binary: np.ndarray, h: float, cfg: Config = CFG) -> tuple[np.ndar
     vmask = cv2.morphologyEx(vb, cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_RECT, (1, vl)))
     # Horizontal rules span (almost) the whole table; blurred words can form long runs too,
     # so a rule must be >= hrule_min_len*h AND >= half the longest rule.
-    hmask = _keep_long(hmask, axis=1, min_len=1.3 * hl,
-                       abs_min=cfg.hrule_min_len * h, rel_min=0.5)
+    hmask = _keep_long(hmask, axis=1, min_len=1.3 * hl, abs_min=cfg.hrule_min_len * h, rel_min=0.5)
     vmask = _keep_long(vmask, axis=0, min_len=1.2 * vl)
     return hmask, vmask
 
 
-def _keep_long(mask: np.ndarray, axis: int, min_len: float, abs_min: float = 0.0,
-               rel_min: float = 0.0) -> np.ndarray:
+def _keep_long(
+    mask: np.ndarray, axis: int, min_len: float, abs_min: float = 0.0, rel_min: float = 0.0
+) -> np.ndarray:
     n, lab, stats, _ = cv2.connectedComponentsWithStats(mask, connectivity=8)
     out = np.zeros_like(mask)
     if n <= 1:
@@ -74,6 +75,7 @@ def remove_lines(binary: np.ndarray, hmask: np.ndarray, vmask: np.ndarray) -> np
 # blobs and rows
 # ----------------------------------------------------------------------------
 
+
 def find_blobs(text: np.ndarray, h: float, cfg: Config = CFG) -> list[Blob]:
     """Join characters of one cell into a blob; drop specks."""
     kx = max(3, int(round(cfg.blob_join_x * h)))
@@ -82,7 +84,7 @@ def find_blobs(text: np.ndarray, h: float, cfg: Config = CFG) -> list[Blob]:
     blobs: list[Blob] = []
     for i in range(1, n):
         x, y, w, hh, _ = stats[i]
-        sub = text[y:y + hh, x:x + w] & (lab[y:y + hh, x:x + w] == i).astype(np.uint8) * 255
+        sub = text[y : y + hh, x : x + w] & (lab[y : y + hh, x : x + w] == i).astype(np.uint8) * 255
         ink = int(np.count_nonzero(sub))
         if ink < cfg.blob_min_ink:
             continue
@@ -91,11 +93,11 @@ def find_blobs(text: np.ndarray, h: float, cfg: Config = CFG) -> list[Blob]:
         by0, by1 = y + int(ys.min()), y + int(ys.max()) + 1
         bw, bh = bx1 - bx0, by1 - by0
         if bw < cfg.blob_min_width * h and bh < 0.6 * h:
-            continue                       # speck cluster, not a dash or a character
-        if bh > 2.5 * h:                   # leftover rule fragment or picture junk
+            continue  # speck cluster, not a dash or a character
+        if bh > 2.5 * h:  # leftover rule fragment or picture junk
             continue
         blob = Blob(bx0, by0, bx1, by1, ink)
-        blob.lead_dash = _has_leading_minus(sub[by0 - y:by1 - y, bx0 - x:bx1 - x], h)
+        blob.lead_dash = _has_leading_minus(sub[by0 - y : by1 - y, bx0 - x : bx1 - x], h)
         blobs.append(blob)
     return blobs
 
@@ -105,16 +107,23 @@ def _has_leading_minus(sub: np.ndarray, h: float) -> bool:
     n, _, stats, _ = cv2.connectedComponentsWithStats(sub, connectivity=8)
     if n < 3:
         return False
-    comps = sorted((stats[i] for i in range(1, n) if stats[i, cv2.CC_STAT_AREA] > 3),
-                   key=lambda s: s[cv2.CC_STAT_LEFT])
+    comps = sorted(
+        (stats[i] for i in range(1, n) if stats[i, cv2.CC_STAT_AREA] > 3),
+        key=lambda s: s[cv2.CC_STAT_LEFT],
+    )
     if len(comps) < 2:
         return False
     x, y, w, hh, _ = comps[0]
     nxt = comps[1]
     bh = sub.shape[0]
     cy = (y + hh / 2) / max(bh, 1)
-    return (hh <= 0.35 * h and 0.3 * h <= w <= 0.9 * h and 0.3 <= cy <= 0.8
-            and nxt[cv2.CC_STAT_HEIGHT] >= 0.6 * h and nxt[cv2.CC_STAT_LEFT] > x + w - 1)
+    return (
+        hh <= 0.35 * h
+        and 0.3 * h <= w <= 0.9 * h
+        and 0.3 <= cy <= 0.8
+        and nxt[cv2.CC_STAT_HEIGHT] >= 0.6 * h
+        and nxt[cv2.CC_STAT_LEFT] > x + w - 1
+    )
 
 
 def cluster_rows(blobs: list[Blob], h: float, cfg: Config = CFG) -> list[list[int]]:
@@ -142,6 +151,7 @@ def row_center(blobs: list[Blob], row: list[int]) -> float:
 # rs=2 stub detection
 # ----------------------------------------------------------------------------
 
+
 def find_stub_row(blobs: list[Blob], rows: list[list[int]], cfg: Config = CFG) -> int | None:
     """A lone left-most blob sitting half-way between the first two header rows."""
     if len(rows) < 4:
@@ -163,8 +173,10 @@ def find_stub_row(blobs: list[Blob], rows: list[list[int]], cfg: Config = CFG) -
 # columns
 # ----------------------------------------------------------------------------
 
-def column_gaps(blobs: list[Blob], rows: list[list[int]], h: float,
-                cfg: Config = CFG) -> list[tuple[int, int]]:
+
+def column_gaps(
+    blobs: list[Blob], rows: list[list[int]], h: float, cfg: Config = CFG
+) -> list[tuple[int, int]]:
     """Empty vertical corridors in the given rows -> list of (x_start, x_end) gaps."""
     idx = [i for r in rows for i in r]
     if not idx:
@@ -175,12 +187,14 @@ def column_gaps(blobs: list[Blob], rows: list[list[int]], h: float,
     for r in rows:
         line = np.zeros_like(cover, dtype=bool)
         for i in r:
-            line[blobs[i].x0 - xmin:blobs[i].x1 - xmin] = True
+            line[blobs[i].x0 - xmin : blobs[i].x1 - xmin] = True
         cover += line
     best: list[tuple[int, int]] = []
-    for frac, min_gap in ((cfg.col_cover_frac, cfg.col_min_gap),
-                          (cfg.col_cover_frac, 0.6 * cfg.col_min_gap),
-                          (2 * cfg.col_cover_frac, 0.6 * cfg.col_min_gap)):
+    for frac, min_gap in (
+        (cfg.col_cover_frac, cfg.col_min_gap),
+        (cfg.col_cover_frac, 0.6 * cfg.col_min_gap),
+        (2 * cfg.col_cover_frac, 0.6 * cfg.col_min_gap),
+    ):
         thr = int(frac * len(rows))
         low = cover <= thr
         gaps = []
@@ -195,21 +209,21 @@ def column_gaps(blobs: list[Blob], rows: list[list[int]], h: float,
             else:
                 x += 1
         if len(gaps) > cfg.max_cols - 1:
-            gaps = sorted(sorted(gaps, key=lambda g: g[1] - g[0], reverse=True)
-                          [:cfg.max_cols - 1])
+            gaps = sorted(sorted(gaps, key=lambda g: g[1] - g[0], reverse=True)[: cfg.max_cols - 1])
         best = gaps
         if len(gaps) >= cfg.min_cols - 1:
             break
     return best
 
 
-def right_edge_columns(blobs: list[Blob], rows: list[list[int]], h: float,
-                       cfg: Config = CFG) -> list[float] | None:
+def right_edge_columns(
+    blobs: list[Blob], rows: list[list[int]], h: float, cfg: Config = CFG
+) -> list[float] | None:
     """Numbers are right-aligned: every data column has many blobs sharing one right edge.
     Merged cells, dashes and n/a are centred and do not disturb this.  -> sorted edges."""
-    pts = []                                    # (x1, row, width)
+    pts = []  # (x1, row, width)
     for k, r in enumerate(rows):
-        for i in r[1:]:                         # r[0] is the left-aligned row label
+        for i in r[1:]:  # r[0] is the left-aligned row label
             pts.append((blobs[i].x1, k, blobs[i].w))
     if not pts:
         return None
@@ -238,8 +252,9 @@ def right_edge_columns(blobs: list[Blob], rows: list[list[int]], h: float,
     return merged
 
 
-def bounds_from_edges(blobs: list[Blob], rows: list[list[int]], edges: list[float],
-                      h: float) -> list[float]:
+def bounds_from_edges(
+    blobs: list[Blob], rows: list[list[int]], edges: list[float], h: float
+) -> list[float]:
     """Cell borders from right edges: border = right edge + padding (~0.9 h)."""
     pad = 0.9 * h
     labels = [blobs[r[0]] for r in rows if r]
@@ -251,8 +266,9 @@ def bounds_from_edges(blobs: list[Blob], rows: list[list[int]], edges: list[floa
     return [float(left), float(b01)] + [float(e + pad) for e in edges]
 
 
-def column_bounds(blobs: list[Blob], rows: list[list[int]], gaps: list[tuple[int, int]],
-                  h: float) -> list[float]:
+def column_bounds(
+    blobs: list[Blob], rows: list[list[int]], gaps: list[tuple[int, int]], h: float
+) -> list[float]:
     """Cell borders: half-way between the text extents of neighbouring columns."""
     seps = [(a + b) / 2 for a, b in gaps]
     n = len(seps) + 1
@@ -285,6 +301,7 @@ def column_bounds(blobs: list[Blob], rows: list[list[int]], gaps: list[tuple[int
 # full layout
 # ----------------------------------------------------------------------------
 
+
 def analyze(binary: np.ndarray, cfg: Config = CFG) -> Layout:
     """Rectified binary image -> blobs, rows, grid."""
     h = text_height(binary)
@@ -299,8 +316,12 @@ def analyze(binary: np.ndarray, cfg: Config = CFG) -> Layout:
     body = real_rows[2:] if len(real_rows) >= 5 else real_rows
 
     idx = [i for r in real_rows for i in r]
-    box = (min(blobs[i].x0 for i in idx), min(blobs[i].y0 for i in idx),
-           max(blobs[i].x1 for i in idx), max(blobs[i].y1 for i in idx))
+    box = (
+        min(blobs[i].x0 for i in idx),
+        min(blobs[i].y0 for i in idx),
+        max(blobs[i].x1 for i in idx),
+        max(blobs[i].y1 for i in idx),
+    )
     rules = style_mod.detect(hmask, vmask, box, cfg)
 
     col_bounds, col_src = None, ""
@@ -328,9 +349,16 @@ def analyze(binary: np.ndarray, cfg: Config = CFG) -> Layout:
     row_bounds += [(a + b) / 2 for a, b in zip(centers, centers[1:])]
     row_bounds.append(centers[-1] + pitch / 2)
     grid = Grid(row_bounds=row_bounds, col_bounds=col_bounds, row_centers=centers)
-    return Layout(h=h, blobs=blobs, rows=rows, grid=grid, hline_mask=hmask,
-                  vline_mask=vmask, stub_row=stub,
-                  extra=dict(pitch=pitch, style=rules.style, rules=rules, col_src=col_src))
+    return Layout(
+        h=h,
+        blobs=blobs,
+        rows=rows,
+        grid=grid,
+        hline_mask=hmask,
+        vline_mask=vmask,
+        stub_row=stub,
+        extra=dict(pitch=pitch, style=rules.style, rules=rules, col_src=col_src),
+    )
 
 
 def grid_bounds(v_xs: list[float], box: tuple, cfg: Config = CFG) -> list[float] | None:

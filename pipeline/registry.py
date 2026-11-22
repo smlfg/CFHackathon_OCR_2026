@@ -7,6 +7,7 @@ skipped and why, instead of silently looking complete.
 
     python -m pipeline registry build [--offline]
 """
+
 from __future__ import annotations
 
 import csv
@@ -14,8 +15,7 @@ import json
 import re
 import urllib.error
 import urllib.request
-from datetime import datetime, timezone
-from pathlib import Path
+from datetime import UTC, datetime
 
 from . import config
 
@@ -38,8 +38,9 @@ def _num(value: str) -> float | None:
 
 def hf_exists(repo: str) -> bool:
     try:
-        with urllib.request.urlopen(f"https://huggingface.co/api/models/{repo}",
-                                    timeout=20) as response:
+        with urllib.request.urlopen(
+            f"https://huggingface.co/api/models/{repo}", timeout=20
+        ) as response:
             return response.status == 200
     except (urllib.error.HTTPError, urllib.error.URLError, OSError):
         return False
@@ -58,10 +59,17 @@ def candidates() -> dict[str, dict]:
             continue
         name = MEDALS.sub("", row["Method"]).strip()
         key = slug(name)
-        entry = found.setdefault(key, {
-            "method": name, "params_b": total, "active_b": active,
-            "periods": [], "average": None, "venue": row.get("Venue", ""),
-        })
+        entry = found.setdefault(
+            key,
+            {
+                "method": name,
+                "params_b": total,
+                "active_b": active,
+                "periods": [],
+                "average": None,
+                "venue": row.get("Venue", ""),
+            },
+        )
         entry["periods"].append(row["period"])
         entry["params_b"] = max(entry["params_b"], total)
         try:
@@ -103,21 +111,38 @@ def build(offline: bool = False, write: bool = True) -> dict:
             continue
         key = max(hits, key=lambda k: ocrbench[k]["params_b"])
         meta = ocrbench[key]
-        add({**rule, "params_b": meta["params_b"], "active_b": meta["active_b"],
-             "ocrbench_average": meta["average"], "venue": meta["venue"],
-             "periods": meta["periods"]}, "ocrbench")
+        add(
+            {
+                **rule,
+                "params_b": meta["params_b"],
+                "active_b": meta["active_b"],
+                "ocrbench_average": meta["average"],
+                "venue": meta["venue"],
+                "periods": meta["periods"],
+            },
+            "ocrbench",
+        )
         matched_rules.append(key)
         del ocrbench[key]
 
     for key, meta in sorted(ocrbench.items(), key=lambda kv: -(kv[1]["params_b"] or 0)):
-        models.append({
-            **defaults, "id": key, "name": meta["method"], "hf_repo": "",
-            "params_b": meta["params_b"], "active_b": meta["active_b"],
-            "quant": "", "source": "ocrbench", "status": "no_runtime",
-            "ocrbench_average": meta["average"], "venue": meta["venue"],
-            "periods": meta["periods"],
-            "note": "open-source and <=15B on OCRBench, but no MLX or GGUF build found",
-        })
+        models.append(
+            {
+                **defaults,
+                "id": key,
+                "name": meta["method"],
+                "hf_repo": "",
+                "params_b": meta["params_b"],
+                "active_b": meta["active_b"],
+                "quant": "",
+                "source": "ocrbench",
+                "status": "no_runtime",
+                "ocrbench_average": meta["average"],
+                "venue": meta["venue"],
+                "periods": meta["periods"],
+                "note": "open-source and <=15B on OCRBench, but no MLX or GGUF build found",
+            }
+        )
 
     if not offline:
         for model in models:
@@ -131,7 +156,7 @@ def build(offline: bool = False, write: bool = True) -> dict:
     for model in models:
         counts[model["status"]] = counts.get(model["status"], 0) + 1
     payload = {
-        "generated": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        "generated": datetime.now(UTC).isoformat(timespec="seconds"),
         "total_limit_b": TOTAL_LIMIT,
         "source_csv": str(CSV.relative_to(config.ROOT)),
         "counts": counts,
@@ -139,8 +164,9 @@ def build(offline: bool = False, write: bool = True) -> dict:
     }
     if write:
         config.REGISTRY.mkdir(parents=True, exist_ok=True)
-        config.MODELS_YAML.write_text(json.dumps(payload, indent=1, ensure_ascii=False),
-                                      encoding="utf-8")
+        config.MODELS_YAML.write_text(
+            json.dumps(payload, indent=1, ensure_ascii=False), encoding="utf-8"
+        )
     return payload
 
 

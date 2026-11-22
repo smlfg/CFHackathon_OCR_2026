@@ -19,7 +19,7 @@ python selftest_workflow.py --gt data/dev     # must end with ALL INVARIANTS HOL
 python baselines/baseline_tesseract.py --gt data/dev --out predictions_tess/
 python score_all.py --gt data/dev --pred predictions_tess/     # expect ≈0.348
 python evaluate.py  --gt data/dev --pred predictions_tess/     # per-table TEDS, structure, cell F1
-python gallery.py                              # gallery.html: images + GT + QA side by side
+python tools/gallery.py                            # gallery.html: images + GT + QA side by side
 ```
 
 Evidence to keep: the exact score line (final, per-tier TEDS, QA) written into

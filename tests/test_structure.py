@@ -1,4 +1,5 @@
 """Structure detection on small self-drawn tables with known geometry."""
+
 import numpy as np
 import pytest
 from PIL import Image, ImageDraw, ImageFont
@@ -6,9 +7,12 @@ from PIL import Image, ImageDraw, ImageFont
 from tablesalt import preprocess, spans, structure
 
 FONT = None
-for p in ("C:/Windows/Fonts/arial.ttf", "/System/Library/Fonts/Supplemental/Arial.ttf",
-          "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf",
-          "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"):
+for p in (
+    "C:/Windows/Fonts/arial.ttf",
+    "/System/Library/Fonts/Supplemental/Arial.ttf",
+    "/usr/share/fonts/truetype/msttcorefonts/Arial.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf",
+):
     try:
         FONT = ImageFont.truetype(p, 20)
         break
@@ -19,7 +23,8 @@ pytestmark = pytest.mark.skipif(FONT is None, reason="no TrueType font available
 
 ROWS = [["Item", "Q1", "Q2", "Q3", "Q4"]] + [
     [lab, "1,234.56", "-98.70", "45,000.00", "7,725.25"]
-    for lab in ("Revenue", "Taxes", "EBIT", "Capex", "Inventory", "Cash flow", "Net income")]
+    for lab in ("Revenue", "Taxes", "EBIT", "Capex", "Inventory", "Cash flow", "Net income")
+]
 
 
 def draw(style: str, merge: bool = False) -> np.ndarray:
@@ -42,8 +47,12 @@ def draw(style: str, merge: bool = False) -> np.ndarray:
             d.text((x, row_y[r] + 12), text, font=FONT, fill=25)
         if merge and r == 3:
             bb = d.textbbox((0, 0), "see note 3", font=FONT)
-            d.text(((col_x[2] + col_x[4] - (bb[2] - bb[0])) / 2, row_y[r] + 12), "see note 3",
-                   font=FONT, fill=25)
+            d.text(
+                ((col_x[2] + col_x[4] - (bb[2] - bb[0])) / 2, row_y[r] + 12),
+                "see note 3",
+                font=FONT,
+                fill=25,
+            )
     if style == "grid":
         for y in row_y:
             d.line([(col_x[0], y), (col_x[-1], y)], fill=25, width=2)
@@ -76,9 +85,12 @@ def test_merged_body_cell_gets_colspan():
     prep = preprocess.prepare(draw("hlines", merge=True))
     lay = structure.analyze(prep.binary)
     texts = [""] * len(lay.blobs)
-    for i, b in enumerate(lay.blobs):
-        if b.w > 80 and lay.rows[3][-1] != i and b.x0 > 300:
-            texts[i] = "see note 3"
+    # Row 3 holds: label, one number, the merged "see note 3", one number. Pick the merged blob by
+    # position rather than by pixel width, so the test does not depend on the installed font
+    # (DejaVu renders numbers wider than Arial and a width threshold matched them too).
+    row3 = sorted(lay.rows[3], key=lambda i: lay.blobs[i].x0)
+    assert len(row3) == 4
+    texts[row3[2]] = "see note 3"
     cells, hr = spans.build_cells(lay, texts)
     merged = [c for c in cells if c.cs == 2]
     assert hr == 1

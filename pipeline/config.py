@@ -1,4 +1,5 @@
 """Paths and runtime settings, all overridable by environment variables."""
+
 from __future__ import annotations
 
 import os
@@ -33,8 +34,8 @@ MAX_PARAMS_B = float(os.environ.get("TABLESALT_MAX_PARAMS", "15"))
 MAX_EMPTY_RATE = float(os.environ.get("TABLESALT_MAX_EMPTY_RATE", "0.20"))
 
 DATASETS = {
-    "dev": DATA / "dev",      # official yardstick, 24 tables, never trained on
-    "val": DATA / "val",      # generated decision set, 240 tables
+    "dev": DATA / "dev",  # official yardstick, 24 tables, never trained on
+    "val": DATA / "val",  # generated decision set, 240 tables
     "train": DATA / "train",  # only for fine-tuning, not for scoring
 }
 

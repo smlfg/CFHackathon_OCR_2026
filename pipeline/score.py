@@ -4,6 +4,7 @@ Imports score_all.py / evaluate.py / eval_qa.py from the repo root so there is
 exactly one scoring implementation, and this pipeline can never drift from the
 official number.
 """
+
 from __future__ import annotations
 
 import importlib.util
@@ -49,16 +50,18 @@ def score(gt_dir: Path, pred_dir: Path) -> tuple[dict, list[dict]]:
             ok = qa.grade_one(question, qa.auto_answer(question, grid))
             qa_ok.append(ok)
             correct += 1 if ok else 0
-        rows.append({
-            "tid": tid,
-            "tier": entry["tier"],
-            "style": entry.get("style", ""),
-            "has_spans": entry.get("has_spans", False),
-            "teds": round(teds, 4),
-            "cell_f1": round(f1, 4),
-            "qa": round(correct / len(questions), 4) if questions else 0.0,
-            "empty": not pred_html,
-        })
+        rows.append(
+            {
+                "tid": tid,
+                "tier": entry["tier"],
+                "style": entry.get("style", ""),
+                "has_spans": entry.get("has_spans", False),
+                "teds": round(teds, 4),
+                "cell_f1": round(f1, 4),
+                "qa": round(correct / len(questions), 4) if questions else 0.0,
+                "empty": not pred_html,
+            }
+        )
 
     tier_mean = {t: sum(v) / len(v) for t, v in sorted(per_tier.items())}
     teds_w = ev.tier_weighted(tier_mean)

@@ -1,0 +1,20 @@
+# Tooling config only (no packaging). Lint/format scope = our code; the organizer's files
+# (scorer, generator, baselines) are kept byte-identical to the upstream template on purpose.
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = [
+    "evaluate.py", "eval_qa.py", "score_all.py", "generate_dataset.py", "flatten_dataset.py",
+    "selftest_workflow.py", "baselines/", "data/", "out_eval/", "benchmarks/",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    "E741",    # short names like l/I are used for geometry in a few loops
+    "SIM108",  # ternary rewrites hurt readability of the geometry code
+    "RUF001", "RUF002", "RUF003",  # en/em dashes and umlauts are domain data, not typos
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

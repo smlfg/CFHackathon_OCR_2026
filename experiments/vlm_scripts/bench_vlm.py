@@ -2,13 +2,14 @@
 """Run a local MLX OCR model over a TableSalt dataset and keep the raw output.
 
 Usage
-    python bench_vlm.py --model lighton8 --out raw/lighton
-    python bench_vlm.py --model paddle8  --out raw/paddle
-    python bench_vlm.py --model lighton8 --prompt grounding --out raw/lighton-ground
+    python experiments/vlm_scripts/bench_vlm.py --model lighton8 --out raw/lighton
+    python experiments/vlm_scripts/bench_vlm.py --model paddle8  --out raw/paddle
+    python experiments/vlm_scripts/bench_vlm.py --model lighton8 --prompt grounding --out raw/lighton-ground
 
 One text file per table in --out plus a meta.json with seconds and token counts.
 Nothing is interpreted here: the raw model text is what a converter gets later.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -75,7 +76,10 @@ def main() -> None:
         image = page(Path(args.gt) / entry["image"], longest_edge)
         started = time.time()
         result = generate(
-            model, processor, formatted, image,
+            model,
+            processor,
+            formatted,
+            image,
             max_tokens=args.max_tokens,
             temperature=temperature,
             verbose=False,
@@ -93,14 +97,15 @@ def main() -> None:
             "generation_tokens": int(getattr(result, "generation_tokens", 0) or 0),
         }
         meta.append(stats)
-        print(f"{tid} {entry['tier']:<3} {seconds:6.2f}s "
-              f"{stats['generation_tokens']:5d} tok -> {len(text)} chars")
+        print(
+            f"{tid} {entry['tier']:<3} {seconds:6.2f}s "
+            f"{stats['generation_tokens']:5d} tok -> {len(text)} chars"
+        )
 
     meta_path = out / "meta.json"
     previous = json.loads(meta_path.read_text()) if meta_path.exists() else []
     known = {m["id"] for m in previous}
-    meta_path.write_text(json.dumps(previous + [m for m in meta if m["id"] not in known],
-                                   indent=1))
+    meta_path.write_text(json.dumps(previous + [m for m in meta if m["id"] not in known], indent=1))
     if meta:
         total = sum(m["seconds"] for m in meta)
         print(f"\n{len(meta)} tables, {total:.1f}s, {total / len(meta):.1f}s/table")

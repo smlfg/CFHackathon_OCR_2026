@@ -2,15 +2,16 @@
 """Build a single self-contained gallery.html from a TableSalt dataset.
 
 Usage:
-    python gallery.py                                  # ground truth only
-    python gallery.py --pred predictions_tess          # GT next to a prediction
-    python gallery.py --gt data/dev --pred preds --out gallery.html
+    python tools/gallery.py                                  # ground truth only
+    python tools/gallery.py --pred predictions_tess          # GT next to a prediction
+    python tools/gallery.py --gt data/dev --pred preds --out gallery.html
 
 No server and no dependencies beyond the stdlib: images are embedded as data
 URIs, so the file opens straight from disk (file://). Metrics are computed with
 the official functions in evaluate.py, so what the gallery shows matches the
 scorer - when its dependencies (requirements.txt) are importable.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -18,6 +19,7 @@ import base64
 import html
 import json
 import mimetypes
+import sys
 from html.parser import HTMLParser
 from pathlib import Path
 
@@ -26,8 +28,9 @@ from pathlib import Path
 # Official metrics, imported lazily so the gallery still opens without deps.
 # --------------------------------------------------------------------------- #
 def load_scorer():
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))  # repo root: official scorer
     try:
-        import evaluate as ev  # noqa: WPS433 - deliberate lazy import
+        import evaluate as ev
     except Exception:
         return None
     return ev
@@ -79,12 +82,9 @@ class _TableParser(HTMLParser):
     def handle_endtag(self, tag):
         if tag == "table":
             self._depth -= 1
-        elif tag in ("td", "th") and self._cur is not None:
-            self._cur["text"] = " ".join("".join(self._buf).split())
-            self.cells.append(self._cur)
-            self._c += self._cur["cs"]
-            self._cur = None
-        elif tag == "tr" and self._cur is not None:  # unclosed cell
+        elif (tag in ("td", "th") and self._cur is not None) or (
+            tag == "tr" and self._cur is not None
+        ):
             self._cur["text"] = " ".join("".join(self._buf).split())
             self.cells.append(self._cur)
             self._c += self._cur["cs"]
@@ -201,23 +201,25 @@ def qa_block(qa: list[dict]) -> str:
         answer = item.get("answer")
         num = item.get("answer_numeric")
         num_html = (
-            f'<span class=num>{esc(num)}</span>'
+            f"<span class=num>{esc(num)}</span>"
             if isinstance(num, (int, float)) and str(num) != str(answer)
             else ""
         )
         items.append(
-            f'<li><span class=qtype>{esc(item.get("type", "qa"))}</span>'
-            f'<span class=q>{esc(item.get("question", ""))}</span>'
-            f'<span class=a>{esc(answer)}{num_html}</span></li>'
+            f"<li><span class=qtype>{esc(item.get('type', 'qa'))}</span>"
+            f"<span class=q>{esc(item.get('question', ''))}</span>"
+            f"<span class=a>{esc(answer)}{num_html}</span></li>"
         )
-    return f'<ol class=qa>{"".join(items)}</ol>'
+    return f"<ol class=qa>{''.join(items)}</ol>"
 
 
 def metric_badges(teds: float | None, teds_s: float | None, f1: float | None) -> str:
     if teds is None:
         return ""
+
     def tone(v: float) -> str:
         return "good" if v >= 0.8 else ("mid" if v >= 0.5 else "weak")
+
     return (
         f'<span class="tag score {tone(teds)}">TEDS {teds:.3f}</span>'
         f'<span class="tag score {tone(teds_s)}">struct {teds_s:.3f}</span>'
@@ -255,8 +257,8 @@ def build(gt: Path, out: Path, pred: Path | None = None) -> Path:
             if pred_cells:
                 status = diff_cells(cells, pred_cells)
                 pred_panel = (
-                    '<div class=panel><h3>prediction '
-                    f'<span class=src>{esc(pred.name)}</span></h3>'
+                    "<div class=panel><h3>prediction "
+                    f"<span class=src>{esc(pred.name)}</span></h3>"
                     f"{render_table(pred_cells, diff_cells(cells, pred_cells))}</div>"
                 )
             else:
@@ -267,7 +269,7 @@ def build(gt: Path, out: Path, pred: Path | None = None) -> Path:
                     else "no prediction file"
                 )
                 pred_panel = (
-                    f'<div class=panel><h3>prediction <span class=src>{esc(pred.name)}</span></h3>'
+                    f"<div class=panel><h3>prediction <span class=src>{esc(pred.name)}</span></h3>"
                     f"<p class=empty>{note}</p></div>"
                 )
 
@@ -280,19 +282,15 @@ def build(gt: Path, out: Path, pred: Path | None = None) -> Path:
                     f1 = ev.cell_f1(gt_html, pred_html)
                     scored.append({"tier": entry.get("tier"), "teds": teds, "f1": f1})
 
-        meta = f'{entry.get("n_rows", "?")} &times; {entry.get("n_cols", "?")}'
-        gt_panel = (
-            "<div class=panel><h3>ground truth</h3>"
-            + render_table(cells)
-            + "</div>"
-        )
+        meta = f"{entry.get('n_rows', '?')} &times; {entry.get('n_cols', '?')}"
+        gt_panel = "<div class=panel><h3>ground truth</h3>" + render_table(cells) + "</div>"
         cards.append(
             f'<article class=card data-tier="{esc(entry.get("tier"))}" '
             f'data-style="{esc(entry.get("style"))}" data-teds="{teds if teds is not None else ""}" '
             f'id="{esc(tid)}"><header><h2>{esc(tid)}</h2><div class=tags>'
             f'<span class="tag tier {esc(entry.get("tier"))}">{esc(entry.get("tier"))}</span>'
-            f'<span class=tag>{esc(entry.get("style"))}</span>'
-            f'{"<span class=tag>spans</span>" if entry.get("has_spans") else ""}'
+            f"<span class=tag>{esc(entry.get('style'))}</span>"
+            f"{'<span class=tag>spans</span>' if entry.get('has_spans') else ''}"
             f"<span class=tag>{meta}</span>{metric_badges(teds, teds_s, f1)}"
             f"</div></header>"
             f'<div class="body{" three" if pred is not None else ""}">'
@@ -320,7 +318,7 @@ def build(gt: Path, out: Path, pred: Path | None = None) -> Path:
             else teds_mean
         )
         headline = (
-            f'<p class=sub><b>{esc(pred.name)}</b>: mean TEDS {teds_mean:.3f} &middot; '
+            f"<p class=sub><b>{esc(pred.name)}</b>: mean TEDS {teds_mean:.3f} &middot; "
             f"tier-weighted TEDS (the scored part) {weighted:.3f} &middot; "
             f"mean cell F1 {f1_mean:.3f} &middot; "
             f"<span class=legend><span class=sw ok></span>cell matches GT</span> "
@@ -328,12 +326,12 @@ def build(gt: Path, out: Path, pred: Path | None = None) -> Path:
         )
     elif pred is not None:
         headline = (
-            f'<p class=sub><b>{esc(pred.name)}</b>: metrics unavailable - run with the '
+            f"<p class=sub><b>{esc(pred.name)}</b>: metrics unavailable - run with the "
             "venv that has requirements.txt installed for TEDS and cell F1.</p>"
         )
     else:
         headline = (
-            '<p class=sub>Ground truth only. Add <code>--pred &lt;dir&gt;</code> '
+            "<p class=sub>Ground truth only. Add <code>--pred &lt;dir&gt;</code> "
             "to compare a prediction cell by cell.</p>"
         )
 
@@ -406,7 +404,7 @@ def build(gt: Path, out: Path, pred: Path | None = None) -> Path:
 <div class=bar>
   <div class=group>tier <button data-f="tier" data-v="" class=on>all</button>{tier_buttons}</div>
   <div class=group>style <button data-f="style" data-v="" class=on>all</button>{style_buttons}</div>
-  {f'<div class=group>score <button data-f="score" data-v="weak">TEDS &lt; 0.5</button><button data-f="score" data-v="all" class=on>any</button></div>' if scored else ""}
+  {'<div class=group>score <button data-f="score" data-v="weak">TEDS &lt; 0.5</button><button data-f="score" data-v="all" class=on>any</button></div>' if scored else ""}
 </div>
 <div class=grid>{"".join(cards)}</div>
 <script>
