@@ -1,3 +1,56 @@
+# Team submission — reviewer path (read this first)
+
+**What we hand in:** `tablesalt/`, a classic computer-vision + Tesseract pipeline. It runs on
+CPU only, needs no model weights, and the image is 520 MB. The organizer's challenge text starts
+below at "TableSalt — Robust Table Recognition".
+
+| | dev (24) | never-seen fresh96 | container |
+|---|---|---|---|
+| Tesseract floor (organizer) | 0.348 | – | – |
+| **our pipeline** | **0.9971** | **0.9931** | builds from repo root, runs with `--network none`, 4 s for 24 tables on 8 CPUs |
+
+**Where to look (10 minutes):**
+
+1. [challenge/DECISIONS.md](challenge/DECISIONS.md): 16 ADRs. They cover what we chose, what we
+   measured and dropped (22 VLMs, TATR, a teammate pipeline), and what we planned but did not
+   build (OCR routing, auto-research loop).
+2. [challenge/MEASUREMENTS.md](challenge/MEASUREMENTS.md) and [docs/RESULTS.md](docs/RESULTS.md):
+   every scored run, one row each, never edited.
+3. [challenge/ERRORS.md](challenge/ERRORS.md): what still goes wrong, with table ids.
+4. [docs/LEARNLOG.md](docs/LEARNLOG.md) (German): the pipeline explained milestone by milestone.
+   [docs/NOTES.md](docs/NOTES.md): what the generator and the scorer really do.
+5. Code: `tablesalt/run.py` (orchestration and fallback ladder) → `preprocess` → `structure` →
+   `spans` → `ocr` → `postprocess` → `validate`, plus `selfcheck` (second-opinion router).
+
+**Run it**
+
+```bash
+# container, exactly as the organizer runs it
+python flatten_dataset.py data/dev flat
+docker build -t tablesalt -f submission_template/Dockerfile .
+docker run --rm --network none -v "$PWD/flat:/data/images:ro" -v "$PWD/out:/data/predictions" tablesalt
+python score_all.py --gt data/dev --pred out
+
+# local (needs tesseract-ocr with eng+deu)
+pip install -r requirements.txt
+python tools/eval_local.py --gt data/dev --no-log      # flatten -> predict -> score
+python -m pytest -q                                     # 36 tests
+ruff check . && ruff format --check .                   # config in pyproject.toml
+```
+
+**Repository map**
+
+| Path | What | Status |
+|---|---|---|
+| `tablesalt/`, `submission_template/` | the submission | shipped |
+| `tests/`, `tools/` | tests; eval, debug overlay, worst tables, gallery | dev tooling |
+| `challenge/`, `docs/`, `agent.md` | problem, plan, ADRs, measurements, build instructions | docs |
+| `pipeline/`, `registry/`, `scripts/`, `compose.yaml`, `experiments/vlm_scripts/` | VLM benchmark board (22 models, MLX on a Mac), ADR-004 | experiment, not shipped |
+| `benchmarks/`, TATR, CUDA harness, VLM postprocess | branch `feat/vlm-ocr-bench` | experiment, not merged |
+| `generate_dataset.py`, `score_all.py`, `evaluate.py`, `eval_qa.py`, `flatten_dataset.py`, `selftest_workflow.py`, `baselines/` | organizer's kit | unchanged |
+
+---
+
 # TableSalt — Robust Table Recognition from Degraded Scans
 
 **Turn a photo or scan of a table into a structured table a program can query — even when the

@@ -11,7 +11,7 @@ organizer's kit (generator, scorer, baselines, template).
 | [PLAN.md](PLAN.md) | milestone plan M0–M5, candidate architectures, commands, risk register, definition of done |
 | [MEASUREMENTS.md](MEASUREMENTS.md) | every run with numbers (fill in from M0 on) |
 | [ERRORS.md](ERRORS.md) | error classes per tier/style with examples (fill in from M1 on) |
-| [DECISIONS.md](DECISIONS.md) | ADRs — one per real decision, with evidence |
+| [DECISIONS.md](DECISIONS.md) | ADRs — one per real decision, with evidence (16, filled 2026-11-22) |
 
 ## The short version
 
